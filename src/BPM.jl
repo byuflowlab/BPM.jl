@@ -6,7 +6,7 @@
 
 module BPM
 # Subroutine to use the BPM equations for turbine acoustics
-
+export turbinepos
 # cubic spline interpolation setup (for Tip Vortex Noise)
 function splineint(n,x,y,xval)
     yval = 0.0
