@@ -857,6 +857,9 @@ end #OASPL
 
 # Placing a turbine in a specified location and finding the OASPL of the turbine with reference to an observer
 """
+
+turbinepos(x,y,obs,winddir,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR,noise_corr)
+
 Calculating the sound pressure level for a HAWT
 
 # Parameters
