@@ -5,7 +5,7 @@
 
 # cubic spline interpolation setup (for Tip Vortex Noise)
 function splineint(n,x,y,xval)
-
+    yval = 0.0
     # assuming the values of x are in accending order
     for i = 1:n
         if (xval < x[i])
@@ -44,10 +44,10 @@ function splineint(n,x,y,xval)
                     yval = cubspline(x1,x2,x3,y1,y2,y3,xval)
                 end
             end
-            exit()
+            break
         elseif (xval == x[i])
             yval = y[i]
-            exit()
+            break
         end
 
     end
@@ -104,6 +104,8 @@ function direct(n,xt,yt,zt,c,c1,d,Hub,beta)
 
     theta_e = zeros(n)
     phi_e = zeros(n)
+    c2 = zeros(n)
+    r = zeros(n)
 
     # distance from pitch-axis to trailing edge
     c2[1:n] = c[1:n]-c1[1:n]
@@ -163,8 +165,7 @@ function Dhfunc(theta_e,phi_e,M)
     conv = 0.8 # convection factor for speed
     Mc = M*conv
 
-    Dh = (2.0*(sin(theta_e/2.0))^2*(sin(phi_e))^2)/((1.0+
-    M*cos(theta_e))*(1.0+(M-Mc)*cos(theta_e))^2)
+    Dh = (2.0*(sin(theta_e/2.0))^2*(sin(phi_e))^2)/((1.0+M*cos(theta_e))*(1.0+(M-Mc)*cos(theta_e))^2)
     return Dh
 end
 
@@ -175,7 +176,7 @@ function Dlfunc(theta_e,phi_e,M)
 end #Dlfunc
 
 # Spectral Function A
-function Afunc(ain,Re,Aspec)
+function Afunc(ain,Re)
     a = abs(log10(ain))
 
     # Calculating Amin
@@ -727,11 +728,30 @@ function TEBVSfunc(f,V,L,c,h,r,theta_e,phi_e,alpha,nu,c0,psi,trip)
 end #TEBVSfunc
 
 # Computing the overall sound pressure level (OASPL) of a turbine defined below (in dB)
-function OASPL(n,ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
+function OASPL(ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
     # constants
     pi = 3.1415926535897932
     nf = 27
     bf = 3
+
+    n = length(rad)
+
+    L = zeros(n-1)
+    d = zeros(n-1)
+    V = zeros(n-1)
+    h = zeros(n-1)
+    TV_t = zeros(B)
+    TE_t = zeros((n-1)*B)
+    BLVS_t = zeros((n-1)*B)
+    BVS_t = zeros((n-1)*B)
+
+    TE = zeros(27)
+    TV = zeros(27)
+    BLVS = zeros(27)
+    BVS = zeros(27)
+    SPLf = zeros(27)
+    SPLoa_d = zeros(3)
+
 
     # Using untripped or tripped boundary layer specficiation
     trip = false # untripped
@@ -784,7 +804,7 @@ function OASPL(n,ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
                 TV_t[bi] = TBLTV
                 for k=1:n-1
                     # Calculating sound pressure level (dB) for each noise source at each radial position
-                    LBLVS = TBLTEfunc(f[j],V[k],L[k],c[k],r[k],theta_e[k],phi_e[k],alpha[k],
+                    TBLTE = TBLTEfunc(f[j],V[k],L[k],c[k],r[k],theta_e[k],phi_e[k],alpha[k],
                     nu,c0,trip)
                     if (trip == false)
                         LBLVS = LBLVSfunc(f[j],V[k],L[k],c[k],r[k],theta_e[k],phi_e[k],alpha[k],
@@ -803,10 +823,10 @@ function OASPL(n,ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
             end
 
             # Adding sound pressure levels (dB)
-            TE[j] = 10.0*log10(sum(10.0^(TE_t/10.0)))
-            TV[j] = 10.0*log10(sum(10.0^(TV_t/10.0)))
-            BLVS[j] = 10.0*log10(sum(10.0^(BLVS_t/10.0)))
-            BVS[j] = 10.0*log10(sum(10.0^(BVS_t/10.0)))
+            TE[j] = 10.0*log10(sum(10.0.^(TE_t/10.0)))
+            TV[j] = 10.0*log10(sum(10.0.^(TV_t/10.0)))
+            BLVS[j] = 10.0*log10(sum(10.0.^(BLVS_t/10.0)))
+            BVS[j] = 10.0*log10(sum(10.0.^(BVS_t/10.0)))
 
             # Combining noise sources into overall SPL
             SPLf[j] = 10.0*log10(10.0^(TE[j]/10.0)+10.0^(TV[j]/
@@ -817,7 +837,7 @@ function OASPL(n,ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
         SPLf[1:nf] = SPLf[1:nf]+AdB[1:nf]
 
         # Adding SPLs for each rotation increment
-        SPLoa_d[di] = 10.0*log10(sum(10.0^(SPLf/10.0)))
+        SPLoa_d[di] = 10.0*log10(sum(10.0.^(SPLf/10.0)))
 
         # Protecting total calcuation from negative SPL values
         if (SPLoa_d[di] < 0.0)
@@ -826,14 +846,16 @@ function OASPL(n,ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
     end
 
     # Performing root mean square calculation of SPLs at rotation increments for final value
-    SPLoa = sqrt(sum(SPLoa_d^2)/bf)
+    SPLoa = sqrt(sum(SPLoa_d.^2)/bf)
     return SPLoa
 end #OASPL
 
 # Placing a turbine in a specified location and finding the OASPL of the turbine with reference to an observer
-function turbinepos(nturb,nseg,nobs,x,y,obs,winddir,windvel,rpm,B,Hub,
+function turbinepos(x,y,obs,winddir,windvel,rpm,B,Hub,
     rad,c,c1,alpha,nu,c0,psi,AR,noise_corr)
 
+    nturb = length(x)
+    tSPL = zeros(nturb)
     windrad = (winddir+180.0)*pi/180.0
 
     for i = 1:nturb # for each turbine
@@ -850,11 +872,11 @@ function turbinepos(nturb,nseg,nobs,x,y,obs,winddir,windvel,rpm,B,Hub,
         oy = rxy*sin(ang)
 
         # Calculating the overall SPL of each of the turbines at the observer location
-        tSPL[i] = OASPL(nseg,ox,oy,oz,windvel[i],rpm[i],B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
+        tSPL[i] = OASPL(ox,oy,oz,windvel[i],rpm[i],B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
     end
 
     # Combining the SPLs from each turbine and correcting the value based on the wind farm
-    SPL_obs = (10.0*log10(sum(10.0^(tSPL/10.0))))*noise_corr
+    SPL_obs = (10.0*log10(sum(10.0.^(tSPL/10.0))))*noise_corr
     return SPL_obs
 end #turbinepos
 
@@ -880,7 +902,7 @@ obs_test = [0., 243.84, 0.] # x-, y-, and z-location of the observer (m)
 winddir_test = 0. # wind direction (deg)
 rpm_test = [28.5] # rotation rate of the tubrines (rpm)
 windvel_test = [15.] # wind velocity (m/s)
-B_test = 3. # number of blades
+B_test = 3 # number of blades
 h_test = 25. # height of the turbine hub (m)
 noise_corr = 0.8697933840957954 # correction factor for noise
 
@@ -893,7 +915,7 @@ AR = 17. # blade aspect ratio
 nu = 1.78e-5 # kinematic viscosity (m^2/s)
 c0 = 343.2 # speed of sound (m/s)
 psi = 14.0 # solid angle (deg)
-                        (nturb,  nseg,     nobs,       x,            y,          obs,    winddir,windvel,rpm, B, Hub, rad,  c,  c1,alpha,nu,    c0,      psi, AR, noise_corr)
+                    # f    (nturb,  nseg,     nobs,       x,            y,          obs,    winddir,windvel,rpm, B, Hub, rad,  c,  c1,alpha,nu,    c0,      psi, AR, noise_corr)
 db_test_ros = turbinepos(x_test, y_test, obs_test, winddir_test, windvel_test, rpm_test, B_test, h_test, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr)
 
 println("Test Cases:")
@@ -910,7 +932,7 @@ obs_test = [0., 200., 0.] # x-, y-, and z-location of the observer (m)
 winddir_test = 0. # wind direction (deg)
 rpm_test = [28.5,28.5] # rotation rate of the tubrines (rpm)
 windvel_test = [10.0,10.0] # wind velocity (m/s)
-B_test = 3. # number of blades
+B_test = 3 # number of blades
 h_test = 25. # height of the turbine hub (m)
 noise_corr = 0.8697933840957954 # correction factor for noise
 
