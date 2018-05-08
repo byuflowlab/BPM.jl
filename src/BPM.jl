@@ -506,10 +506,10 @@ function TBLTEfunc(f,V,L,c,r,theta_e,phi_e,alpha,nu,c0,trip)
         K2 = K1-12.0
     end
 
-    Re = (V*dp_d)/nu
+    Re_dp = (V*dp_d)/nu
 
-    if (Re <= 5000.0)
-        DeltaK1 = alpha*(1.43*log10(Re)-5.29)
+    if (Re_dp <= 5000.0)
+        DeltaK1 = alpha*(1.43*log10(Re_dp)-5.29)
     else
         DeltaK1 = 0.0
     end
@@ -730,7 +730,7 @@ end #TEBVSfunc
 # Computing the overall sound pressure level (OASPL) of a turbine defined below (in dB)
 function OASPL(ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
     # constants
-    pi = 3.1415926535897932
+
     nf = 27
     bf = 3
 
@@ -745,12 +745,12 @@ function OASPL(ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
     BLVS_t = zeros((n-1)*B)
     BVS_t = zeros((n-1)*B)
 
-    TE = zeros(27)
-    TV = zeros(27)
-    BLVS = zeros(27)
-    BVS = zeros(27)
-    SPLf = zeros(27)
-    SPLoa_d = zeros(3)
+    TE = zeros(nf)
+    TV = zeros(nf)
+    BLVS = zeros(nf)
+    BVS = zeros(nf)
+    SPLf = zeros(nf)
+    SPLoa_d = zeros(bf)
 
 
     # Using untripped or tripped boundary layer specficiation
@@ -806,6 +806,7 @@ function OASPL(ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
                     # Calculating sound pressure level (dB) for each noise source at each radial position
                     TBLTE = TBLTEfunc(f[j],V[k],L[k],c[k],r[k],theta_e[k],phi_e[k],alpha[k],
                     nu,c0,trip)
+
                     if (trip == false)
                         LBLVS = LBLVSfunc(f[j],V[k],L[k],c[k],r[k],theta_e[k],phi_e[k],alpha[k],
                         nu,c0,trip)
@@ -829,9 +830,9 @@ function OASPL(ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
             BVS[j] = 10.0*log10(sum(10.0.^(BVS_t/10.0)))
 
             # Combining noise sources into overall SPL
-            SPLf[j] = 10.0*log10(10.0^(TE[j]/10.0)+10.0^(TV[j]/
-            10.0)+10.0^(BLVS[j]/10.0)+10.0^(BVS[j]/10.0))
+            SPLf[j] = 10.0*log10(10.0^(TE[j]/10.0)+10.0^(TV[j]/10.0)+10.0^(BLVS[j]/10.0)+10.0^(BVS[j]/10.0))
         end
+
 
         # Correcting with A-weighting
         SPLf[1:nf] = SPLf[1:nf]+AdB[1:nf]
@@ -883,12 +884,6 @@ end #turbinepos
 
 # end # module
 
-
-# Option to plot a noise distribution around the turbines
-plot_dist = true
-# plot_dist = False # comment this out if desired on
-turbine = "hawt"
-turbine = "vawt"
 
 ##################################################################################
 ##################################################################################
