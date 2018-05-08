@@ -66,7 +66,7 @@ psi = 14.0 # solid angle (deg)
 
 db_test = BPM.turbinepos(x_test, y_test, obs_test, winddir_test, windvel_test, rpm_test, B_test, h_test, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr)
 
-println("Test SPL: $db_test")
+println("Test SPL (50.8446366094): $db_test")
 @test isapprox(db_test, 50.8446366094; atol=1e-6)
 
 end #Eric's other example
