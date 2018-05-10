@@ -6,7 +6,7 @@
 
 module BPM
 # Subroutine to use the BPM equations for turbine acoustics
-export turbinepos
+export turbinepos_HAWT,turbpos_VAWT
 # cubic spline interpolation setup (for Tip Vortex Noise)
 function splineint(n,x,y,xval)
     yval = 0.0
@@ -162,6 +162,94 @@ function direct(n,xt,yt,zt,c,c1,d,Hub,beta)
     end
     return r,theta_e,phi_e
 end #direct
+
+#VAWT Directivty function
+function directVAWT(n,xt,yt,zt,c,c1,ht,rad,Hub,rotdur,beta)
+
+    theta_e = zeros(n)
+    phi_e = zeros(n)
+    c2 = zeros(n)
+    r = zeros(n)
+
+    # distance from pitch-axis to trailing edge
+    c2[1:n] = c[1:n]-c1[1:n]
+
+    # Calculating observer location from hub
+    xo = xt # lateral direction
+    yo = yt # downstream direction
+    zo = zt-Hub # height direction
+
+    for i=1:n
+        # Calculating trailing edge position from hub
+        if rotdir >= 0.0
+            xs=-rad*cos(beta)-c2[i]*sin(beta)
+            ys=-rad*sin(beta)+c2[i]*cos(beta)
+            zs=ht[i]
+        else
+            xs=-rad*cos(beta)+c2[i]*sin(beta)
+            ys=-rad*sin(beta)-c2[i]*cos(beta)
+            zs=ht[i]
+        end
+
+        # Calculating observer position from trailing edge
+        xe_d = xo-xs
+        ye_d = yo-ys
+        ze_d = zo-zs
+
+        # Rotating observer position with repsect to beta
+        theta = rotdir*(pi/2.0)+beta
+        xe = cos(theta)*xe_d+sin(theta)*ye_d
+        ye = -sin(theta)*xe_d+cos(theta)*ye_d
+
+        # Calculating observer distance and directivity angles
+        r[i] = sqrt(xe^2+ye^2+ze^2)
+        theta_e[i] = atan2(sqrt(ye^2+ze^2),xe)
+        phi_e[i] = atan2(ye,ze)
+
+        # Quadratic smoothing when phi_e is close to 0 or 180 degrees
+        if (abs(theta_e[i])< 0.5*pi/180.0)
+            if (theta_e[i] >= 0.0)
+                sign = 1
+            else
+                sign = -1
+            end
+            theta_er=abs(theta_e[i]*180.0/pi)
+            theta_er=0.1*theta_er^2+2.5
+            theta_e[i] = sign*theta_er*pi/180.0
+        elseif (abs(theat_e[i])> 175.0*pi/180)
+            if (theta_e[i] >=0 )
+                sign =1
+            else
+                sign=-1
+            end
+
+            theta_er = abs(theta_e[i])*180.0/pi
+            theta_er = -0.1*(theta_er-180.0)^2+177.5
+            theta_e(i) = sign*theta_er*pi/180.0
+        end
+        if (abs(phi_e[i]) < 5.0*pi/180.0)
+            if (phi_e[i] >= 0.0)
+                sign = 1
+            else
+                sign = -1
+            end
+            phi_er = abs(phi_e[i])*180.0/pi
+            phi_er = 0.1*phi_er^2+2.5
+            phi_e[i] = sign*phi_er*pi/180.0
+        elseif (abs(phi_e[i]) > 175.0*pi/180.0)
+            if (phi_e[i] >= 0.0)
+                sign = 1
+            else
+                sign = -1
+            end
+            phi_er = abs(phi_e[i])*180.0/pi
+            phi_er = -0.1*(phi_er-180.0)^2+177.5
+            phi_e[i] = sign*phi_er*pi/180.0
+        end
+
+    end
+    return r,theta_e,phi_e
+end #directVAWT
 
 # Directivity function for high-frequency noise
 # not for high-angle separation; becomes inaccurate for theta_e approaching 180 deg
@@ -855,6 +943,155 @@ function OASPL(ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
     return SPLoa
 end #OASPL
 
+#Computing the overall sound pressure level (OASPL) of a turbine defined below (in dB)
+function OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot,Ving,wakex,wakey,AR)
+   # constants
+
+   nf = 27
+   bf = 8
+
+   n = length(rad)
+
+   L = zeros(n-1)
+   d = zeros(n-1)
+   V = zeros(n-1)
+   h = zeros(n-1)
+   TV_t = zeros(B)
+   TE_t = zeros((n-1)*B)
+   BLVS_t = zeros((n-1)*B)
+   BVS_t = zeros((n-1)*B)
+
+   TE = zeros(nf)
+   TV = zeros(nf)
+   BLVS = zeros(nf)
+   BVS = zeros(nf)
+   SPLf = zeros(nf)
+   SPLoa_d = zeros(bf)
+
+   # Using untripped or tripped boundary layer specficiation
+   trip = false # untripped
+   # trip = true # tripped
+
+   # Tip specfication
+   tipflat = false # round
+   # tipflat = true # flat
+
+      for i = 1:n-1
+       L[i] = high[i+1]-high[i] # length of each height section (m)
+       highmid[i] = (high[i+1]+high[i])/2.0
+   end
+   h[1:n-1] = 0.1*c[1:n-1]
+   atip1 = alpha[1] #angle of attack of the tip region on bottom (deg)
+   atip2= alpha[n-1] #angle of attack of the tip region on top (deg)
+
+   if (rot >= 0.0)
+       rotdir = 1.0
+   else
+       rotdir = -1.0
+   end
+
+   h[1:n-1] = 0.01*c[1:n-1]  # trailing edge thickness; 1% of chord length (m)
+   atip = alpha[n-1]  # angle of attack of the tip region (deg)
+
+   # Blade rotation increments to rotate around (45 deg from Vargas paper)
+   # beta = [0.0,0.25*pi,0.5*pi,0.75*pi,pi,1.25*pi,1.5*pi,1.75*pi] # 8 increments
+   #beta = [0.0,2.0*pi/9.0,4.0*pi/9.0] # 3 increments (equivalent of 9 for 3 blades)
+   # beta = [0.0,pi] # 2 increments
+   # beta = [0.0] # 1 increment (top blade facing straight up)
+
+   B_int = 2.0*pi/B # Intervals between blades (from the first blade at 0 deg)
+
+   # One-third octave band frequencies (Hz)
+   f = [100.0,125.0,160.0,200.0,250.0,315.0,400.0,500.0,
+   630.0,800.0,1000.0,1250.0,1600.0,2000.0,2500.0,3150.0,
+   4000.0,5000.0,6300.0,8000.0,10000.0,12500.0,16000.0,
+   20000.0,25000.0,31500.0,40000.0]
+
+   # A-weighting curve (dBA) for sound perception correction
+   AdB = [-19.145,-16.190,-13.244,-10.847,-8.675,-6.644,
+   -4.774,-3.248,-1.908,-0.795,0.0,0.576,0.993,1.202,
+   1.271,1.202,0.964,0.556,-0.114,-1.144,-2.488,-4.250,
+   -6.701,-9.341,-12.322,-15.694,-19.402]
+
+   for i=1:p
+       theta_vel(i) = (2.0/pi)*i-(2*pi/p)/2
+   end
+
+   for di=1:bf # for each rotation increment
+       for j=1:nf # for each frequency
+           for bi=1:B # for each blade
+               # Calcuating observer distances and directivty angles for the given blade orientation
+               theta = beta(di)+(bi-l)*B_int
+               r,theta_e,phi_e = directVAWT(n-1,ox,oy,oz,c,c1,highmid,rad,Hub,rotDir,theta,beta[di]+(bi-1)*B_int)
+
+               if ((theta >= theat_vel(l)) & (theta <= theta_vel(p)))
+                   velwx=splineint(p,theta_vel,wakex,theta)
+                   velwy=splineint(p,theta_vel,wakey,theta)
+               else
+                   velwx = (wakex[1]+wakex[p])/2.0
+                   velwy = (wakey[1]+wakey[p])/2.0
+               end
+
+               Vx=rot*rad*cos(theta)+Vinf+velwx
+               Vy=rot*rad*sin(theta) + velwy
+               V=sqrt(Vx^2+Vy^2)
+
+               TBLTV = TBLTVfuncVAWT(f[j],V[1],c[1],r[1],theta_e[1],phi_e[1],atip1,c0,
+               tipflat,AR)
+               TV_t[2*(bi-1)+1] = TBLTV
+               TBLTV= TBLTVfunc(f[j],V,c[n-1],r[n-1],theta_e[n-1],phi_e[n-1],atip2,c0,
+               tipflat,AR)
+               TV_t[2*(bi-1)+2] = TBLTV
+
+               for k=1:n-1
+                   # Calculating sound pressure level (dB) for each noise source at each radial position
+                   TBLTE = TBLTEfunc(f[j],V,L[k],c[k],r[k],theta_e[k],phi_e[k],alpha[k],
+                   nu,c0,trip)
+
+                   if (trip == false)
+                       LBLVS = LBLVSfunc(f[j],V,L[k],c[k],r[k],theta_e[k],phi_e[k],alpha[k],
+                       nu,c0,trip)
+                   else
+                       LBLVS = 0.0
+                   end
+                   TEBVS = TEBVSfunc(f[j],V,L[k],c[k],h[k],r[k],theta_e[k],phi_e[k],
+                   alpha[k],nu,c0,psi,trip)
+
+                   # Assigning noise to blade segment
+                   TE_t[k+[n-1]*(bi-1)] = TBLTE
+                   BLVS_t[k+[n-1]*(bi-1)] = LBLVS
+                   BVS_t[k+[n-1]*(bi-1)] = TEBVS
+               end
+           end
+
+           # Adding sound pressure levels (dB)
+           TE[j] = 10.0*log10(sum(10.0.^(TE_t/10.0)))
+           TV[j] = 10.0*log10(sum(10.0.^(TV_t/10.0)))
+           BLVS[j] = 10.0*log10(sum(10.0.^(BLVS_t/10.0)))
+           BVS[j] = 10.0*log10(sum(10.0.^(BVS_t/10.0)))
+
+           # Combining noise sources into overall SPL
+           SPLf[j] = 10.0*log10(10.0^(TE[j]/10.0)+10.0^(TV[j]/10.0)+10.0^(BLVS[j]/10.0)+10.0^(BVS[j]/10.0))
+       end
+
+
+       # Correcting with A-weighting
+       SPLf[1:nf] = SPLf[1:nf]+AdB[1:nf]
+
+       # Adding SPLs for each rotation increment
+       SPLoa_d[di] = 10.0*log10(sum(10.0.^(SPLf/10.0)))
+
+       # Protecting total calcuation from negative SPL values
+       if (SPLoa_d[di] < 0.0)
+           SPLoa_d[di] = 0.0
+       end
+   end
+
+   # Performing root mean square calculation of SPLs at rotation increments for final value
+   SPLoa = sqrt(sum(SPLoa_d.^2)/bf)
+   return SPLoa
+end #OASPLVAWT
+
 # Placing a turbine in a specified location and finding the OASPL of the turbine with reference to an observer
 """
 
@@ -886,7 +1123,7 @@ Calculating the sound pressure level for a HAWT
 ----------
 - `SPL_HAWT::float`:  sound pressure level calculated at observer location (dB)
 """
-function turbinepos(x,y,obs,winddir,windvel,rpm,B,Hub,
+function turbinepos_HAWT(x,y,obs,winddir,windvel,rpm,B,Hub,
     rad,c,c1,alpha,nu,c0,psi,AR,noise_corr)
 
     nturb = length(x)
@@ -913,7 +1150,41 @@ function turbinepos(x,y,obs,winddir,windvel,rpm,B,Hub,
     # Combining the SPLs from each turbine and correcting the value based on the wind farm
     SPL_obs = (10.0*log10(sum(10.0.^(tSPL/10.0))))*noise_corr
     return SPL_obs
-end #turbinepos
+end #turbinepos_HAWT
 
+function turbinepos_VAWT(p,x,y,obs,winddir,B,Hub,high,
+    rad,c,c1,alpha,nu,c0,psi,AR,noise_corr,rot,Vinf,wakex,wakey)
+
+    nturb = length(x)
+    tSPL = zeros(nturb)
+    windrad = (winddir+180.0)*pi/180.0
+
+    for i = 1:nturb # for each turbine
+        # Centering the turbine at (0,0) with repect to the observer location
+        ox = obs[1]-x[i]
+        oy = obs[2]-y[i]
+        oz = obs[3]
+
+        # Adjusting the coordinates to turbine reference frame (wind moving in y-direction)
+        rxy = sqrt(ox^2+oy^2)
+        ang = atan2(oy,ox)+windrad
+
+        ox = rxy*cos(ang)
+        oy = rxy*sin(ang)
+
+        for j=1:p
+            k=p*(i-1)+j
+            wakexd[j] = wakex[k]
+            wakeyd[j] = wakey[k]
+        end
+
+        # Calculating the overall SPL of each of the turbines at the observer location
+        tSPL[i] = OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,AR,rot[i],Vinf,wakexd,wakeyd)
+    end
+
+    # Combining the SPLs from each turbine and correcting the value based on the wind farm
+    SPL_obs = (10.0*log10(sum(10.0.^(tSPL/10.0))))*noise_corr
+    return SPL_obs
+end #turbinepos_VAWT
 
 end # module

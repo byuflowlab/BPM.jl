@@ -28,7 +28,7 @@ nu = 1.78e-5 # kinematic viscosity (m^2/s)
 c0 = 343.2 # speed of sound (m/s)
 psi = 14.0 # solid angle (deg)
 # f    (nturb,  nseg,     nobs,       x,            y,          obs,    winddir,windvel,rpm, B, Hub, rad,  c,  c1,alpha,nu,    c0,      psi, AR, noise_corr)
-db_test_ros = BPM.turbinepos(x_test, y_test, obs_test, winddir_test, windvel_test, rpm_test, B_test, h_test, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr)
+db_test_ros = BPM.turbinepos_HAWT(x_test, y_test, obs_test, winddir_test, windvel_test, rpm_test, B_test, h_test, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr)
 
 println("Test Cases:")
 println("Rosiere Validation (47 dB): $db_test_ros")
@@ -64,9 +64,61 @@ nu = 1.78e-5 # kinematic viscosity (m^2/s)
 c0 = 343.2 # speed of sound (m/s)
 psi = 14.0 # solid angle (deg)
 
-db_test = BPM.turbinepos(x_test, y_test, obs_test, winddir_test, windvel_test, rpm_test, B_test, h_test, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr)
+db_test = BPM.turbinepos_HAWT(x_test, y_test, obs_test, winddir_test, windvel_test, rpm_test, B_test, h_test, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr)
 
 println("Test SPL (50.8446366094): $db_test")
 @test isapprox(db_test, 50.8446366094; atol=1e-6)
 
 end #Eric's other example
+
+@testset "Mariah Windspire 5 MW" begin
+##################################################################################
+##################################################################################
+##################################################################################
+
+nu = 1.78e-5 # kinematic viscosity (m^2/s)
+c0 = 343.2 # speed of sound (m/s)
+psi = 14.0 # solid angle (deg)
+
+turbx = [0.] # turbine x-positions (m)
+turby = [0.] # turbine y-positions (m)
+Vinf = 8. # free stream wind speed (m/s)
+dia = 1.2 # turbine diameter (m)
+rad = dia/2. # turbine radius (m)
+tsrd = 2.625 # tip-speed ratio
+
+rot = np.ones_like(turbx)*tsrd*Vinf/rad # turbine rotation rates (rad/s)
+
+winddir = 180. # wind direction (deg)
+
+# Aerodynamic properties
+twist = 0.0
+delta = 0.0
+
+B = 3 # number of blades
+chord = 0.128 # chord length (m)
+c = np.ones(div)*chord # chord lengths over height positions (m)
+c1 = c*0.5 # pitch axis location (m)
+alpha = np.ones(div)*0.0 # angles of attack (deg)
+Hub = 2. # hub height (m)
+H = 6.1 # blade height (m)
+high = np.linspace(0,H,div+1) # height positions of the blade (m)
+AR = 5. # aspect ratio
+
+# Wake velocities from surronding turbines
+ntheta = 4
+wakex = np.zeros(ntheta)
+wakey = np.zeros(ntheta)
+
+noise_corr = 1.0 # correction factor for noise
+
+#Test Point
+X=50
+Y=50
+Z=0
+
+SPL=_bpmvawtacoustic.turbinepos(ntheta, turbx, turby, np.array([X,Y,Z]), winddir, B, Hub, high, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr, rot, Vinf, wakex, wakey)
+
+
+
+end
