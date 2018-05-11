@@ -6,7 +6,7 @@
 
 module BPM
 # Subroutine to use the BPM equations for turbine acoustics
-export turbinepos_HAWT,turbpos_VAWT
+export turbinepos_HAWT,turbinepos_VAWT
 # cubic spline interpolation setup (for Tip Vortex Noise)
 function splineint(n,x,y,xval)
     yval = 0.0
@@ -164,7 +164,7 @@ function direct(n,xt,yt,zt,c,c1,d,Hub,beta)
 end #direct
 
 #VAWT Directivty function
-function directVAWT(n,xt,yt,zt,c,c1,ht,rad,Hub,rotdur,beta)
+function directVAWT(n,xt,yt,zt,c,c1,ht,rad,Hub,rotdir,beta)
 
     theta_e = zeros(n)
     phi_e = zeros(n)
@@ -194,7 +194,7 @@ function directVAWT(n,xt,yt,zt,c,c1,ht,rad,Hub,rotdur,beta)
         # Calculating observer position from trailing edge
         xe_d = xo-xs
         ye_d = yo-ys
-        ze_d = zo-zs
+        ze = zo-zs
 
         # Rotating observer position with repsect to beta
         theta = rotdir*(pi/2.0)+beta
@@ -206,7 +206,7 @@ function directVAWT(n,xt,yt,zt,c,c1,ht,rad,Hub,rotdur,beta)
         theta_e[i] = atan2(sqrt(ye^2+ze^2),xe)
         phi_e[i] = atan2(ye,ze)
 
-        # Quadratic smoothing when phi_e is close to 0 or 180 degrees
+        # Quadratic smoothing when theta_e or phi_e are close to 0, +/-180 degrees
         if (abs(theta_e[i])< 0.5*pi/180.0)
             if (theta_e[i] >= 0.0)
                 sign = 1
@@ -216,7 +216,7 @@ function directVAWT(n,xt,yt,zt,c,c1,ht,rad,Hub,rotdur,beta)
             theta_er=abs(theta_e[i]*180.0/pi)
             theta_er=0.1*theta_er^2+2.5
             theta_e[i] = sign*theta_er*pi/180.0
-        elseif (abs(theat_e[i])> 175.0*pi/180)
+        elseif (abs(theta_e[i])> 175.0*pi/180)
             if (theta_e[i] >=0 )
                 sign =1
             else
@@ -225,7 +225,7 @@ function directVAWT(n,xt,yt,zt,c,c1,ht,rad,Hub,rotdur,beta)
 
             theta_er = abs(theta_e[i])*180.0/pi
             theta_er = -0.1*(theta_er-180.0)^2+177.5
-            theta_e(i) = sign*theta_er*pi/180.0
+            theta_e[i] = sign*theta_er*pi/180.0
         end
         if (abs(phi_e[i]) < 5.0*pi/180.0)
             if (phi_e[i] >= 0.0)
@@ -944,19 +944,20 @@ function OASPL(ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
 end #OASPL
 
 #Computing the overall sound pressure level (OASPL) of a turbine defined below (in dB)
-function OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot,Ving,wakex,wakey,AR)
-   # constants
+function OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot,Vinf,wakex,wakey,AR)
 
+   # constants
    nf = 27
    bf = 8
 
-   n = length(rad)
+   n = p
+
 
    L = zeros(n-1)
    d = zeros(n-1)
    V = zeros(n-1)
    h = zeros(n-1)
-   TV_t = zeros(B)
+   TV_t = zeros(2*B)
    TE_t = zeros((n-1)*B)
    BLVS_t = zeros((n-1)*B)
    BVS_t = zeros((n-1)*B)
@@ -967,6 +968,8 @@ function OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot,Ving,wakex
    BVS = zeros(nf)
    SPLf = zeros(nf)
    SPLoa_d = zeros(bf)
+   theta_vel = zeros(p)
+   highmid = zeros(n)
 
    # Using untripped or tripped boundary layer specficiation
    trip = false # untripped
@@ -982,8 +985,7 @@ function OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot,Ving,wakex
    end
    h[1:n-1] = 0.1*c[1:n-1]
    atip1 = alpha[1] #angle of attack of the tip region on bottom (deg)
-   atip2= alpha[n-1] #angle of attack of the tip region on top (deg)
-
+   atip2= alpha[n] #angle of attack of the tip region on top (deg)
    if (rot >= 0.0)
        rotdir = 1.0
    else
@@ -991,10 +993,10 @@ function OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot,Ving,wakex
    end
 
    h[1:n-1] = 0.01*c[1:n-1]  # trailing edge thickness; 1% of chord length (m)
-   atip = alpha[n-1]  # angle of attack of the tip region (deg)
+   atip = alpha[n]  # angle of attack of the tip region (deg)
 
    # Blade rotation increments to rotate around (45 deg from Vargas paper)
-   # beta = [0.0,0.25*pi,0.5*pi,0.75*pi,pi,1.25*pi,1.5*pi,1.75*pi] # 8 increments
+   beta = [0.0,0.25*pi,0.5*pi,0.75*pi,pi,1.25*pi,1.5*pi,1.75*pi] # 8 increments
    #beta = [0.0,2.0*pi/9.0,4.0*pi/9.0] # 3 increments (equivalent of 9 for 3 blades)
    # beta = [0.0,pi] # 2 increments
    # beta = [0.0] # 1 increment (top blade facing straight up)
@@ -1014,17 +1016,17 @@ function OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot,Ving,wakex
    -6.701,-9.341,-12.322,-15.694,-19.402]
 
    for i=1:p
-       theta_vel(i) = (2.0/pi)*i-(2*pi/p)/2
+       theta_vel[i] = (2.0*pi/p)*i-(2*pi/p)/2.0
    end
 
    for di=1:bf # for each rotation increment
        for j=1:nf # for each frequency
            for bi=1:B # for each blade
                # Calcuating observer distances and directivty angles for the given blade orientation
-               theta = beta(di)+(bi-l)*B_int
-               r,theta_e,phi_e = directVAWT(n-1,ox,oy,oz,c,c1,highmid,rad,Hub,rotDir,theta,beta[di]+(bi-1)*B_int)
+               theta = beta[di]+(bi-1)*B_int
+               r,theta_e,phi_e = directVAWT(n,ox,oy,oz,c,c1,highmid,rad,Hub,rotdir,theta)
 
-               if ((theta >= theat_vel(l)) & (theta <= theta_vel(p)))
+               if ((theta >= theta_vel[1]) & (theta <= theta_vel[p]))
                    velwx=splineint(p,theta_vel,wakex,theta)
                    velwy=splineint(p,theta_vel,wakey,theta)
                else
@@ -1036,7 +1038,7 @@ function OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot,Ving,wakex
                Vy=rot*rad*sin(theta) + velwy
                V=sqrt(Vx^2+Vy^2)
 
-               TBLTV = TBLTVfuncVAWT(f[j],V[1],c[1],r[1],theta_e[1],phi_e[1],atip1,c0,
+               TBLTV = TBLTVfunc(f[j],V[1],c[1],r[1],theta_e[1],phi_e[1],atip1,c0,
                tipflat,AR)
                TV_t[2*(bi-1)+1] = TBLTV
                TBLTV= TBLTVfunc(f[j],V,c[n-1],r[n-1],theta_e[n-1],phi_e[n-1],atip2,c0,
@@ -1157,6 +1159,8 @@ function turbinepos_VAWT(p,x,y,obs,winddir,B,Hub,high,
 
     nturb = length(x)
     tSPL = zeros(nturb)
+    wakexd = zeros(p)
+    wakeyd = zeros(p)
     windrad = (winddir+180.0)*pi/180.0
 
     for i = 1:nturb # for each turbine
@@ -1177,9 +1181,8 @@ function turbinepos_VAWT(p,x,y,obs,winddir,B,Hub,high,
             wakexd[j] = wakex[k]
             wakeyd[j] = wakey[k]
         end
-
         # Calculating the overall SPL of each of the turbines at the observer location
-        tSPL[i] = OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,AR,rot[i],Vinf,wakexd,wakeyd)
+        tSPL[i] = OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot[i],Vinf,wakexd,wakeyd,AR)
     end
 
     # Combining the SPLs from each turbine and correcting the value based on the wind farm
