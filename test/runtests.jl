@@ -122,6 +122,6 @@ Z=0
 SPL=BPM.turbinepos_VAWT(ntheta, turbx, turby, [X,Y,Z], winddir, B, Hub, high, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr, rot, Vinf, wakex, wakey)
 
 println("Test SPL (70.3): $SPL")
-@test isapprox(db_test, 70.263597969; atol=1e-6)
+@test isapprox(SPL, 70.263597969; atol=1e-6)
 
 end
