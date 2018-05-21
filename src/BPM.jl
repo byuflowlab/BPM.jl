@@ -6,7 +6,7 @@
 
 module BPM
 # Subroutine to use the BPM equations for turbine acoustics
-export turbinepos_HAWT,turbinepos_VAWT
+export turbinepos,turbinepos_VAWT
 # cubic spline interpolation setup (for Tip Vortex Noise)
 function splineint(n,x,y,xval)
     yval = 0.0
@@ -1113,7 +1113,7 @@ Calculating the sound pressure level for a HAWT
 ----------
 - `SPL_HAWT::float`:  sound pressure level calculated at observer location (dB)
 """
-function turbinepos_HAWT(x,y,obs,winddir,windvel,rpm,B,Hub,
+function turbinepos(x,y,obs,winddir,windvel,rpm,B,Hub,
     rad,c,c1,alpha,nu,c0,psi,AR,noise_corr)
 
     nturb = length(x)
@@ -1140,7 +1140,7 @@ function turbinepos_HAWT(x,y,obs,winddir,windvel,rpm,B,Hub,
     # Combining the SPLs from each turbine and correcting the value based on the wind farm
     SPL_obs = (10.0*log10(sum(10.0.^(tSPL/10.0))))*noise_corr
     return SPL_obs
-end #turbinepos_HAWT
+end #turbinepos
 
 function turbinepos_VAWT(p,x,y,obs,winddir,B,Hub,high,
     rad,c,c1,alpha,nu,c0,psi,AR,noise_corr,rot,Vinf,wakex,wakey)
