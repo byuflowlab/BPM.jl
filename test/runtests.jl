@@ -76,6 +76,8 @@ end #Eric's other example
 ##################################################################################
 ##################################################################################
 
+div=5
+
 nu = 1.78e-5 # kinematic viscosity (m^2/s)
 c0 = 343.2 # speed of sound (m/s)
 psi = 14.0 # solid angle (deg)
@@ -87,7 +89,7 @@ dia = 1.2 # turbine diameter (m)
 rad = dia/2. # turbine radius (m)
 tsrd = 2.625 # tip-speed ratio
 
-rot = np.ones_like(turbx)*tsrd*Vinf/rad # turbine rotation rates (rad/s)
+rot = [1]*tsrd*Vinf/rad # turbine rotation rates (rad/s)
 
 winddir = 180. # wind direction (deg)
 
@@ -97,28 +99,29 @@ delta = 0.0
 
 B = 3 # number of blades
 chord = 0.128 # chord length (m)
-c = np.ones(div)*chord # chord lengths over height positions (m)
+c = ones(div)*chord # chord lengths over height positions (m)
 c1 = c*0.5 # pitch axis location (m)
-alpha = np.ones(div)*0.0 # angles of attack (deg)
+alpha = ones(div)*0.0 # angles of attack (deg)
 Hub = 2. # hub height (m)
 H = 6.1 # blade height (m)
-high = np.linspace(0,H,div+1) # height positions of the blade (m)
+high = linspace(0,H,div+1) # height positions of the blade (m)
+
 AR = 5. # aspect ratio
 
 # Wake velocities from surronding turbines
 ntheta = 4
-wakex = np.zeros(ntheta)
-wakey = np.zeros(ntheta)
+wakex = zeros(ntheta)
+wakey = zeros(ntheta)
 
 noise_corr = 1.0 # correction factor for noise
 
 #Test Point
-X=50
-Y=50
+X=5
+Y=5
 Z=0
+SPL=BPM.turbinepos_VAWT(ntheta, turbx, turby, [X,Y,Z], winddir, B, Hub, high, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr, rot, Vinf, wakex, wakey)
 
-SPL=_bpmvawtacoustic.turbinepos(ntheta, turbx, turby, np.array([X,Y,Z]), winddir, B, Hub, high, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr, rot, Vinf, wakex, wakey)
-
-
+println("Test SPL (70.3): $SPL")
+@test isapprox(db_test, 70.263597969; atol=1e-6)
 
 end

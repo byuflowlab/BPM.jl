@@ -205,33 +205,32 @@ function directVAWT(n,xt,yt,zt,c,c1,ht,rad,Hub,rotdir,beta)
         r[i] = sqrt(xe^2+ye^2+ze^2)
         theta_e[i] = atan2(sqrt(ye^2+ze^2),xe)
         phi_e[i] = atan2(ye,ze)
-
         # Quadratic smoothing when theta_e or phi_e are close to 0, +/-180 degrees
-        if (abs(theta_e[i])< 0.5*pi/180.0)
+        if (abs(theta_e[i])< (5.0*pi/180.0))
             if (theta_e[i] >= 0.0)
-                sign = 1
+                sign = 1.0
             else
-                sign = -1
+                sign = -1.0
             end
-            theta_er=abs(theta_e[i]*180.0/pi)
-            theta_er=0.1*theta_er^2+2.5
+            theta_er=abs(theta_e[i])*180.0/pi
+            theta_er=0.1*(theta_er)^2+2.5
             theta_e[i] = sign*theta_er*pi/180.0
-        elseif (abs(theta_e[i])> 175.0*pi/180)
+        elseif (abs(theta_e[i])> (175.0*pi/180))
             if (theta_e[i] >=0 )
-                sign =1
+                sign =1.0
             else
-                sign=-1
+                sign=-1.0
             end
-
             theta_er = abs(theta_e[i])*180.0/pi
             theta_er = -0.1*(theta_er-180.0)^2+177.5
             theta_e[i] = sign*theta_er*pi/180.0
         end
+
         if (abs(phi_e[i]) < 5.0*pi/180.0)
             if (phi_e[i] >= 0.0)
-                sign = 1
+                sign = 1.0
             else
-                sign = -1
+                sign = -1.0
             end
             phi_er = abs(phi_e[i])*180.0/pi
             phi_er = 0.1*phi_er^2+2.5
@@ -246,7 +245,6 @@ function directVAWT(n,xt,yt,zt,c,c1,ht,rad,Hub,rotdir,beta)
             phi_er = -0.1*(phi_er-180.0)^2+177.5
             phi_e[i] = sign*phi_er*pi/180.0
         end
-
     end
     return r,theta_e,phi_e
 end #directVAWT
@@ -950,9 +948,7 @@ function OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot,Vinf,wakex
    nf = 27
    bf = 8
 
-   n = p
-
-
+   n = length(high)
    L = zeros(n-1)
    d = zeros(n-1)
    V = zeros(n-1)
@@ -969,7 +965,7 @@ function OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot,Vinf,wakex
    SPLf = zeros(nf)
    SPLoa_d = zeros(bf)
    theta_vel = zeros(p)
-   highmid = zeros(n)
+   highmid = zeros(n-1)
 
    # Using untripped or tripped boundary layer specficiation
    trip = false # untripped
@@ -978,22 +974,18 @@ function OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot,Vinf,wakex
    # Tip specfication
    tipflat = false # round
    # tipflat = true # flat
-
-      for i = 1:n-1
+   for i = 1:n-1
        L[i] = high[i+1]-high[i] # length of each height section (m)
        highmid[i] = (high[i+1]+high[i])/2.0
    end
-   h[1:n-1] = 0.1*c[1:n-1]
+   h[1:n-1] = 0.01*c[1:n-1]
    atip1 = alpha[1] #angle of attack of the tip region on bottom (deg)
-   atip2= alpha[n] #angle of attack of the tip region on top (deg)
+   atip2= alpha[n-1] #angle of attack of the tip region on top (deg)
    if (rot >= 0.0)
        rotdir = 1.0
    else
        rotdir = -1.0
    end
-
-   h[1:n-1] = 0.01*c[1:n-1]  # trailing edge thickness; 1% of chord length (m)
-   atip = alpha[n]  # angle of attack of the tip region (deg)
 
    # Blade rotation increments to rotate around (45 deg from Vargas paper)
    beta = [0.0,0.25*pi,0.5*pi,0.75*pi,pi,1.25*pi,1.5*pi,1.75*pi] # 8 increments
@@ -1001,7 +993,7 @@ function OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot,Vinf,wakex
    # beta = [0.0,pi] # 2 increments
    # beta = [0.0] # 1 increment (top blade facing straight up)
 
-   B_int = 2.0*pi/B # Intervals between blades (from the first blade at 0 deg)
+   B_int = 2.0*pi/B # Intervals betwqeen blades (from the first blade at 0 deg)
 
    # One-third octave band frequencies (Hz)
    f = [100.0,125.0,160.0,200.0,250.0,315.0,400.0,500.0,
@@ -1016,7 +1008,7 @@ function OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot,Vinf,wakex
    -6.701,-9.341,-12.322,-15.694,-19.402]
 
    for i=1:p
-       theta_vel[i] = (2.0*pi/p)*i-(2*pi/p)/2.0
+       theta_vel[i] = (2.0*pi/p)*i-(2.0*pi/p)/2.0
    end
 
    for di=1:bf # for each rotation increment
@@ -1024,8 +1016,7 @@ function OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot,Vinf,wakex
            for bi=1:B # for each blade
                # Calcuating observer distances and directivty angles for the given blade orientation
                theta = beta[di]+(bi-1)*B_int
-               r,theta_e,phi_e = directVAWT(n,ox,oy,oz,c,c1,highmid,rad,Hub,rotdir,theta)
-
+               r,theta_e,phi_e = directVAWT(n-1,ox,oy,oz,c,c1,highmid,rad,Hub,rotdir,theta)
                if ((theta >= theta_vel[1]) & (theta <= theta_vel[p]))
                    velwx=splineint(p,theta_vel,wakex,theta)
                    velwy=splineint(p,theta_vel,wakey,theta)
@@ -1037,7 +1028,6 @@ function OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot,Vinf,wakex
                Vx=rot*rad*cos(theta)+Vinf+velwx
                Vy=rot*rad*sin(theta) + velwy
                V=sqrt(Vx^2+Vy^2)
-
                TBLTV = TBLTVfunc(f[j],V[1],c[1],r[1],theta_e[1],phi_e[1],atip1,c0,
                tipflat,AR)
                TV_t[2*(bi-1)+1] = TBLTV
@@ -1058,14 +1048,12 @@ function OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot,Vinf,wakex
                    end
                    TEBVS = TEBVSfunc(f[j],V,L[k],c[k],h[k],r[k],theta_e[k],phi_e[k],
                    alpha[k],nu,c0,psi,trip)
-
                    # Assigning noise to blade segment
                    TE_t[k+[n-1]*(bi-1)] = TBLTE
                    BLVS_t[k+[n-1]*(bi-1)] = LBLVS
                    BVS_t[k+[n-1]*(bi-1)] = TEBVS
                end
            end
-
            # Adding sound pressure levels (dB)
            TE[j] = 10.0*log10(sum(10.0.^(TE_t/10.0)))
            TV[j] = 10.0*log10(sum(10.0.^(TV_t/10.0)))
@@ -1156,13 +1144,11 @@ end #turbinepos_HAWT
 
 function turbinepos_VAWT(p,x,y,obs,winddir,B,Hub,high,
     rad,c,c1,alpha,nu,c0,psi,AR,noise_corr,rot,Vinf,wakex,wakey)
-
     nturb = length(x)
     tSPL = zeros(nturb)
     wakexd = zeros(p)
     wakeyd = zeros(p)
     windrad = (winddir+180.0)*pi/180.0
-
     for i = 1:nturb # for each turbine
         # Centering the turbine at (0,0) with repect to the observer location
         ox = obs[1]-x[i]
