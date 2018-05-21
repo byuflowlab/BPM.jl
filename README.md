@@ -37,8 +37,7 @@ import BPM
 
 SPL_HAWT = BPM.turbinepos(turbx, turby, obs, winddir, windvel, rpm, B, h, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr)
 
-SPL_VAWT = BPM.turbinepos_VAWT(p,x,y,obs,winddir,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,AR,noise_corr,rot,Vinf,
-wakex,wakey)
+SPL_VAWT = BPM.turbinepos_VAWT(p,x,y,obs,winddir,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,AR,noise_corr,rot,Vinf,wakex,wakey)
 ```
 
 ## Input and Output Definition
@@ -73,9 +72,8 @@ Parameters
 Returns
 ----------
 - `SPL_HAWT::float`:  sound pressure level calculated at observer location (dB)
-"""
 
-"""
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 turbinepos_VAWT(p,x,y,obs,winddir,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,AR,noise_corr,rot,Vinf,wakex,wakey)
 
