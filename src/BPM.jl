@@ -839,7 +839,8 @@ function OASPL(ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
     TV = zeros(nf)
     BLVS = zeros(nf)
     BVS = zeros(nf)
-    SPLf = zeros(nf)
+    SPLf = zeros(bf, nf)
+    SPLfA = zeros(bf, nf)
     SPLoa_d = zeros(bf)
 
 
@@ -920,15 +921,16 @@ function OASPL(ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
             BVS[j] = 10.0*log10(sum(10.0.^(BVS_t/10.0)))
 
             # Combining noise sources into overall SPL
-            SPLf[j] = 10.0*log10(10.0^(TE[j]/10.0)+10.0^(TV[j]/10.0)+10.0^(BLVS[j]/10.0)+10.0^(BVS[j]/10.0))
+            SPLf[di,j] = 10.0*log10(10.0^(TE[j]/10.0)+10.0^(TV[j]/10.0)+10.0^(BLVS[j]/10.0)+10.0^(BVS[j]/10.0))
         end
 
 
         # Correcting with A-weighting
-        SPLf[1:nf] = SPLf[1:nf]+AdB[1:nf]
+        # SPLf[1:nf] = SPLf[1:nf]+AdB[1:nf]
+        SPLfA[di,1:nf] = SPLf[di,1:nf]+AdB[1:nf]
 
         # Adding SPLs for each rotation increment
-        SPLoa_d[di] = 10.0*log10(sum(10.0.^(SPLf/10.0)))
+        SPLoa_d[di] = 10.0*log10(sum(10.0.^(SPLfA[di,:]/10.0)))
 
         # Protecting total calcuation from negative SPL values
         if (SPLoa_d[di] < 0.0)
@@ -938,7 +940,7 @@ function OASPL(ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
 
     # Performing root mean square calculation of SPLs at rotation increments for final value
     SPLoa = sqrt(sum(SPLoa_d.^2)/bf)
-    return SPLoa
+    return SPLoa, SPLf, SPLfA
 end #OASPL
 
 #Computing the overall sound pressure level (OASPL) of a turbine defined below (in dB)
@@ -1118,6 +1120,8 @@ function turbinepos(x,y,obs,winddir,windvel,rpm,B,Hub,
 
     nturb = length(x)
     tSPL = zeros(nturb)
+    SPLf = zeros(nturb)
+    SPLfA = zeros(nturb)
     windrad = (winddir+180.0)*pi/180.0
 
     for i = 1:nturb # for each turbine
@@ -1134,12 +1138,12 @@ function turbinepos(x,y,obs,winddir,windvel,rpm,B,Hub,
         oy = rxy*sin(ang)
 
         # Calculating the overall SPL of each of the turbines at the observer location
-        tSPL[i] = OASPL(ox,oy,oz,windvel[i],rpm[i],B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
+        tSPL[i], SPLf[i], SPLfA[i] = OASPL(ox,oy,oz,windvel[i],rpm[i],B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
     end
 
     # Combining the SPLs from each turbine and correcting the value based on the wind farm
     SPL_obs = (10.0*log10(sum(10.0.^(tSPL/10.0))))*noise_corr
-    return SPL_obs
+    return SPL_obs, SPLf, SPLfA
 end #turbinepos
 """
 
