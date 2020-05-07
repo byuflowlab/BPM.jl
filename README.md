@@ -26,18 +26,19 @@ Vargas, L., "Wind Turbine Noise Prediction," Master's Thesis, Technical Universi
 
 ## Installation instructions
 
-Pkg.clone("url-to-package-on-git")
+```julia
+Pkg.clone("https://github.com/byuflowlab/BPM.jl.git")
+```
 
 ## Running the Julia code
 
 This julia code can be run from another file using:
 ```julia
-
 import BPM
 
-SPL_HAWT = BPM.turbinepos(turbx, turby, obs, winddir, windvel, rpm, B, h, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr)
+OASPL_HAWT, SPLf_HAWT, SPLfA_HAWT = BPM.turbinepos(turbx, turby, obs, winddir, windvel, rpm, B, h, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr)
 
-SPL_VAWT = BPM.turbinepos_VAWT(p,x,y,obs,winddir,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,AR,noise_corr,rot,Vinf,wakex,wakey)
+OASPL_VAWT = BPM.turbinepos_VAWT(p,x,y,obs,winddir,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,AR,noise_corr,rot,Vinf,wakex,wakey)
 ```
 
 ## Input and Output Definition
@@ -71,7 +72,9 @@ Parameters
 
 Returns
 ----------
-- `SPL_HAWT::float`:  sound pressure level calculated at observer location (dB)
+- `OASPL_HAWT::float`:  A-weighted overall sound pressure level calculated at observer location (dB)
+- `SPLf_HAWT`: sound pressure level at each frequency 
+- `SPLfA_HAWT`: A-weighted sound pressure level at each frequency
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -8,7 +8,7 @@ module BPM
 # Subroutine to use the BPM equations for turbine acoustics
 export turbinepos,turbinepos_VAWT
 # cubic spline interpolation setup (for Tip Vortex Noise)
-function splineint(n,x,y,xval)
+function splineint(n, x, y, xval)
     yval = 0.0
     # assuming the values of x are in accending order
     for i = 1:n
@@ -58,7 +58,7 @@ function splineint(n,x,y,xval)
     return yval
 end
 
-function cubspline(x1,x2,x3,y1,y2,y3,xval)
+function cubspline(x1, x2, x3, y1, y2, y3, xval)
 
     a11 = 2.0/(x2-x1)
     a12 = 1.0/(x2-x1)
@@ -104,7 +104,7 @@ end
 
 # Function to compute directivity angles and distance
 # Based on work by Luis Vargas (Wind Turbine Noise Prediction)
-function direct(n,xt,yt,zt,c,c1,d,Hub,beta)
+function direct(n, xt, yt, zt, c, c1, d, Hub, beta)
 
     theta_e = zeros(n)
     phi_e = zeros(n)
@@ -164,7 +164,7 @@ function direct(n,xt,yt,zt,c,c1,d,Hub,beta)
 end #direct
 
 #VAWT Directivty function
-function directVAWT(n,xt,yt,zt,c,c1,ht,rad,Hub,rotdir,beta)
+function directVAWT(n, xt, yt, zt, c, c1, ht, rad, Hub, rotdir, beta)
 
     theta_e = zeros(n)
     phi_e = zeros(n)
@@ -251,7 +251,7 @@ end #directVAWT
 
 # Directivity function for high-frequency noise
 # not for high-angle separation; becomes inaccurate for theta_e approaching 180 deg
-function Dhfunc(theta_e,phi_e,M)
+function Dhfunc(theta_e, phi_e,M)
     conv = 0.8 # convection factor for speed
     Mc = M*conv
 
@@ -260,13 +260,13 @@ function Dhfunc(theta_e,phi_e,M)
 end
 
 # Directivity function for low-frequency noise
-function Dlfunc(theta_e,phi_e,M)
+function Dlfunc(theta_e, phi_e,M)
     Dl = ((sin(theta_e))^2*(sin(phi_e))^2)/(1.0+M*cos(theta_e))^4
     return Dl
 end #Dlfunc
 
 # Spectral Function A
-function Afunc(ain,Re)
+function Afunc(ain, Re)
     a = abs(log10(ain))
 
     # Calculating Amin
@@ -321,7 +321,7 @@ function Afunc(ain,Re)
 end #Afunc
 
 # Spectral Function B
-function Bfunc(bin,Re)
+function Bfunc(bin, Re)
 
     b = abs(log10(bin))
 
@@ -411,7 +411,7 @@ function G3func(alpha)
     return G3
 end #G3func
 
-function G4func(hdav,psi)
+function G4func(hdav, psi)
     if (hdav <= 5.0)
         G4 = 17.5*log10(hdav)+157.5-1.114*psi
     else
@@ -420,7 +420,7 @@ function G4func(hdav,psi)
     return G4
 end #G4func
 
-function G5func(hdav,psi,StSt_peak)
+function G5func(hdav, psi, StSt_peak)
     # finding G5 at phi = 14 deg
     eta = log10(StSt_peak)
 
@@ -506,7 +506,7 @@ function G5func(hdav,psi,StSt_peak)
 end #G5func
 
 # Turbulent Boundary Layer Trailing Edge Noise
-function TBLTEfunc(f,V,L,c,r,theta_e,phi_e,alpha,nu,c0,trip)
+function TBLTEfunc(f, V, L, c, r, theta_e, phi_e, alpha, nu, c0, trip)
     # constants
     M = V/c0
     Re = (V*c)/nu
@@ -638,7 +638,7 @@ function TBLTEfunc(f,V,L,c,r,theta_e,phi_e,alpha,nu,c0,trip)
 end #TBLTEfunc
 
 # Turbulent Boundary Layer Tip Vortex Noise
-function TBLTVfunc(f,V,c,r,theta_e,phi_e,atip,c0,tipflat,AR)
+function TBLTVfunc(f, V, c, r, theta_e, phi_e, atip, c0, tipflat, AR)
 
     # constants
     M = V/c0
@@ -686,7 +686,7 @@ function TBLTVfunc(f,V,c,r,theta_e,phi_e,atip,c0,tipflat,AR)
 end #TBLTVfunc
 
 # Laminar Boundary Layer Vortex Shedding
-function LBLVSfunc(f,V,L,c,r,theta_e,phi_e,alpha,nu,c0,trip)
+function LBLVSfunc(f, V, L, c, r, theta_e, phi_e, alpha, nu, c0, trip)
 
     # constants
     M = V/c0
@@ -743,7 +743,7 @@ function LBLVSfunc(f,V,L,c,r,theta_e,phi_e,alpha,nu,c0,trip)
 end #LBLVSfunc
 
 # Trailing Edge Bluntness Vortex Shedding Noise
-function TEBVSfunc(f,V,L,c,h,r,theta_e,phi_e,alpha,nu,c0,psi,trip)
+function TEBVSfunc(f, V, L, c, h, r, theta_e, phi_e, alpha, nu, c0, psi, trip)
 
     # constants
     M = V/c0
@@ -818,7 +818,7 @@ function TEBVSfunc(f,V,L,c,h,r,theta_e,phi_e,alpha,nu,c0,psi,trip)
 end #TEBVSfunc
 
 # Computing the overall sound pressure level (OASPL) of a turbine defined below (in dB)
-function OASPL(ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
+function OASPL(ox, oy, oz, windvel, rpm, B, Hub, rad, c, c1, alpha, nu, c0, psi, AR)
     # constants
 
     nf = 27
@@ -940,11 +940,15 @@ function OASPL(ox,oy,oz,windvel,rpm,B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
 
     # Performing root mean square calculation of SPLs at rotation increments for final value
     SPLoa = sqrt(sum(SPLoa_d.^2)/bf)
-    return SPLoa, SPLf, SPLfA
+    SPLf_overall = sqrt.(sum(SPLf.^2, 1)/bf)
+    SPLfA_overall = sqrt.(sum(SPLfA.^2, 1)/bf)
+
+    return SPLoa, SPLf_overall, SPLfA_overall
 end #OASPL
 
 #Computing the overall sound pressure level (OASPL) of a turbine defined below (in dB)
-function OASPLVAWT(p,ox,oy,oz,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,rot,Vinf,wakex,wakey,AR)
+function OASPLVAWT(p, ox, oy, oz, B, Hub, high, rad, c, c1, alpha, nu, 
+                    c0, psi, rot, Vinf, wakex, wakey, AR)
 
    # constants
    nf = 27
@@ -1115,13 +1119,14 @@ Calculating the sound pressure level for a HAWT
 ----------
 - `SPL_HAWT::float`:  sound pressure level calculated at observer location (dB)
 """
-function turbinepos(x,y,obs,winddir,windvel,rpm,B,Hub,
-    rad,c,c1,alpha,nu,c0,psi,AR,noise_corr)
+function turbinepos(x, y, obs, winddir, windvel, rpm, 
+                    B, Hub, rad, c, c1, alpha, nu, c0, 
+                    psi, AR, noise_corr)
 
     nturb = length(x)
     tSPL = zeros(nturb)
-    SPLf = zeros(nturb)
-    SPLfA = zeros(nturb)
+    SPLf = zeros(nturb, 27) #based on nf from OASPL function
+    SPLfA = zeros(nturb, 27)
     windrad = (winddir+180.0)*pi/180.0
 
     for i = 1:nturb # for each turbine
@@ -1138,11 +1143,14 @@ function turbinepos(x,y,obs,winddir,windvel,rpm,B,Hub,
         oy = rxy*sin(ang)
 
         # Calculating the overall SPL of each of the turbines at the observer location
-        tSPL[i], SPLf[i], SPLfA[i] = OASPL(ox,oy,oz,windvel[i],rpm[i],B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
+        tSPL[i], SPLf[i,:], SPLfA[i,:] = OASPL(ox,oy,oz,windvel[i],rpm[i],B,Hub,rad,c,c1,alpha,nu,c0,psi,AR)
     end
 
     # Combining the SPLs from each turbine and correcting the value based on the wind farm
-    SPL_obs = (10.0*log10(sum(10.0.^(tSPL/10.0))))*noise_corr
+    SPL_obs = (10.0*log10(sum(10.0.^(tSPL/10.0)))) * noise_corr
+    SPLf = (10.0*log10(sum(10.0.^(SPLf/10.0), 1))) * noise_corr
+    SPLfA = (10.0*log10(sum(10.0.^(SPLfA/10.0), 1))) * noise_corr
+
     return SPL_obs, SPLf, SPLfA
 end #turbinepos
 """
@@ -1178,10 +1186,15 @@ Calculating the sound pressure level for a HAWT
 ----------
 - `SPL_VAWT::float`:  sound pressure level calculated at observer location (dB)
 """
-function turbinepos_VAWT(p,x,y,obs,winddir,B,Hub,high,
-    rad,c,c1,alpha,nu,c0,psi,AR,noise_corr,rot,Vinf,wakex,wakey)
+function turbinepos_VAWT(p, x, y, obs, winddir, B, Hub, high,
+                            rad, c, c1, alpha, nu, c0, psi, AR, 
+                            noise_corr, rot, Vinf, wakex, wakey)
+
     nturb = length(x)
     tSPL = zeros(nturb)
+    # SPLf = zeros(nturb)
+    # SPLfA = zeros(nturb)
+    
     wakexd = zeros(p)
     wakeyd = zeros(p)
     windrad = (winddir+180.0)*pi/180.0
@@ -1209,6 +1222,7 @@ function turbinepos_VAWT(p,x,y,obs,winddir,B,Hub,high,
 
     # Combining the SPLs from each turbine and correcting the value based on the wind farm
     SPL_obs = (10.0*log10(sum(10.0.^(tSPL/10.0))))*noise_corr
+
     return SPL_obs
 end #turbinepos_VAWT
 
