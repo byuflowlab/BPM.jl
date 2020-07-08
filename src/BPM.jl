@@ -3,6 +3,7 @@
 # Copyright (c) 2015 Eric Tingey, Brigham Young University
 #
 # Modified 2018 Kevin Moore, Taylor McDonald BYU
+# Refactored 2020 by Tyler Critchfield and Eduardo Alvarez.
 
 module BPM
 # Subroutine to use the BPM equations for turbine acoustics
@@ -135,8 +136,8 @@ function direct(n, xt, yt, zt, c, c1, d, Hub, beta)
 
         # Calculating observer distance and directivity angles
         r[i] = sqrt(yo^2+xe^2+ze^2)
-        theta_e[i] = atan2(sqrt(yo^2+ze^2),xe)
-        phi_e[i] = atan2(yo,ze)
+        theta_e[i] = atan(sqrt(yo^2+ze^2),xe)
+        phi_e[i] = atan(yo,ze)
 
         # Quadratic smoothing when phi_e is close to 0 or 180 degrees
         if (abs(phi_e[i]) < 5.0*pi/180.0)
@@ -203,8 +204,8 @@ function directVAWT(n, xt, yt, zt, c, c1, ht, rad, Hub, rotdir, beta)
 
         # Calculating observer distance and directivity angles
         r[i] = sqrt(xe^2+ye^2+ze^2)
-        theta_e[i] = atan2(sqrt(ye^2+ze^2),xe)
-        phi_e[i] = atan2(ye,ze)
+        theta_e[i] = atan(sqrt(ye^2+ze^2),xe)
+        phi_e[i] = atan(ye,ze)
         # Quadratic smoothing when theta_e or phi_e are close to 0, +/-180 degrees
         if (abs(theta_e[i])< (5.0*pi/180.0))
             if (theta_e[i] >= 0.0)
@@ -908,9 +909,9 @@ function OASPL(ox, oy, oz, windvel, rpm, B, Hub, rad, c, c1, alpha, nu, c0, psi,
                     alpha[k],nu,c0,psi,trip)
 
                     # Assigning noise to blade segment
-                    TE_t[k+[n-1]*(bi-1)] = TBLTE
-                    BLVS_t[k+[n-1]*(bi-1)] = LBLVS
-                    BVS_t[k+[n-1]*(bi-1)] = TEBVS
+                    TE_t[k.+[n-1]*(bi-1)] .= TBLTE
+                    BLVS_t[k.+[n-1]*(bi-1)] .= LBLVS
+                    BVS_t[k.+[n-1]*(bi-1)] .= TEBVS
                 end
             end
 
@@ -940,14 +941,14 @@ function OASPL(ox, oy, oz, windvel, rpm, B, Hub, rad, c, c1, alpha, nu, c0, psi,
 
     # Performing root mean square calculation of SPLs at rotation increments for final value
     SPLoa = sqrt(sum(SPLoa_d.^2)/bf)
-    SPLf_overall = sqrt.(sum(SPLf.^2, 1)/bf)
-    SPLfA_overall = sqrt.(sum(SPLfA.^2, 1)/bf)
+    SPLf_overall = sqrt.(sum(SPLf.^2; dims=1)/bf)
+    SPLfA_overall = sqrt.(sum(SPLfA.^2; dims=1)/bf)
 
     return SPLoa, SPLf_overall, SPLfA_overall
 end #OASPL
 
 #Computing the overall sound pressure level (OASPL) of a turbine defined below (in dB)
-function OASPLVAWT(p, ox, oy, oz, B, Hub, high, rad, c, c1, alpha, nu, 
+function OASPLVAWT(p, ox, oy, oz, B, Hub, high, rad, c, c1, alpha, nu,
                     c0, psi, rot, Vinf, wakex, wakey, AR)
 
    # constants
@@ -1055,9 +1056,9 @@ function OASPLVAWT(p, ox, oy, oz, B, Hub, high, rad, c, c1, alpha, nu,
                    TEBVS = TEBVSfunc(f[j],V,L[k],c[k],h[k],r[k],theta_e[k],phi_e[k],
                    alpha[k],nu,c0,psi,trip)
                    # Assigning noise to blade segment
-                   TE_t[k+[n-1]*(bi-1)] = TBLTE
-                   BLVS_t[k+[n-1]*(bi-1)] = LBLVS
-                   BVS_t[k+[n-1]*(bi-1)] = TEBVS
+                   TE_t[k.+[n-1]*(bi-1)] .= TBLTE
+                   BLVS_t[k.+[n-1]*(bi-1)] .= LBLVS
+                   BVS_t[k.+[n-1]*(bi-1)] .= TEBVS
                end
            end
            # Adding sound pressure levels (dB)
@@ -1119,8 +1120,8 @@ Calculating the sound pressure level for a HAWT
 ----------
 - `SPL_HAWT::float`:  sound pressure level calculated at observer location (dB)
 """
-function turbinepos(x, y, obs, winddir, windvel, rpm, 
-                    B, Hub, rad, c, c1, alpha, nu, c0, 
+function turbinepos(x, y, obs, winddir, windvel, rpm,
+                    B, Hub, rad, c, c1, alpha, nu, c0,
                     psi, AR, noise_corr)
 
     nturb = length(x)
@@ -1137,7 +1138,7 @@ function turbinepos(x, y, obs, winddir, windvel, rpm,
 
         # Adjusting the coordinates to turbine reference frame (wind moving in y-direction)
         rxy = sqrt(ox^2+oy^2)
-        ang = atan2(oy,ox)+windrad
+        ang = atan(oy,ox)+windrad
 
         ox = rxy*cos(ang)
         oy = rxy*sin(ang)
@@ -1147,9 +1148,9 @@ function turbinepos(x, y, obs, winddir, windvel, rpm,
     end
 
     # Combining the SPLs from each turbine and correcting the value based on the wind farm
-    SPL_obs = (10.0*log10(sum(10.0.^(tSPL/10.0)))) * noise_corr
-    SPLf = (10.0*log10(sum(10.0.^(SPLf/10.0), 1))) * noise_corr
-    SPLfA = (10.0*log10(sum(10.0.^(SPLfA/10.0), 1))) * noise_corr
+    SPL_obs = (10.0*log10.(sum(10.0.^(tSPL/10.0)))) * noise_corr
+    SPLf = (10.0*log10.(sum(10.0.^(SPLf/10.0); dims=1))) * noise_corr
+    SPLfA = (10.0*log10.(sum(10.0.^(SPLfA/10.0); dims=1))) * noise_corr
 
     return SPL_obs, SPLf, SPLfA
 end #turbinepos
@@ -1187,14 +1188,14 @@ Calculating the sound pressure level for a HAWT
 - `SPL_VAWT::float`:  sound pressure level calculated at observer location (dB)
 """
 function turbinepos_VAWT(p, x, y, obs, winddir, B, Hub, high,
-                            rad, c, c1, alpha, nu, c0, psi, AR, 
+                            rad, c, c1, alpha, nu, c0, psi, AR,
                             noise_corr, rot, Vinf, wakex, wakey)
 
     nturb = length(x)
     tSPL = zeros(nturb)
     # SPLf = zeros(nturb)
     # SPLfA = zeros(nturb)
-    
+
     wakexd = zeros(p)
     wakeyd = zeros(p)
     windrad = (winddir+180.0)*pi/180.0
@@ -1206,7 +1207,7 @@ function turbinepos_VAWT(p, x, y, obs, winddir, B, Hub, high,
 
         # Adjusting the coordinates to turbine reference frame (wind moving in y-direction)
         rxy = sqrt(ox^2+oy^2)
-        ang = atan2(oy,ox)+windrad
+        ang = atan(oy,ox)+windrad
 
         ox = rxy*cos(ang)
         oy = rxy*sin(ang)
@@ -1221,7 +1222,7 @@ function turbinepos_VAWT(p, x, y, obs, winddir, B, Hub, high,
     end
 
     # Combining the SPLs from each turbine and correcting the value based on the wind farm
-    SPL_obs = (10.0*log10(sum(10.0.^(tSPL/10.0))))*noise_corr
+    SPL_obs = (10.0*log10.(sum(10.0.^(tSPL/10.0))))*noise_corr
 
     return SPL_obs
 end #turbinepos_VAWT

@@ -1,19 +1,10 @@
-# BPM
-
-[![Build Status](https://travis-ci.org/moore54/BPM.jl.svg?branch=master)](https://travis-ci.org/moore54/BPM.jl)
-
-[![Coverage Status](https://coveralls.io/repos/moore54/BPM.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/moore54/BPM.jl?branch=master)
-
-[![codecov.io](http://codecov.io/github/moore54/BPM.jl/coverage.svg?branch=master)](http://codecov.io/github/moore54/BPM.jl?branch=master)
-
-
-
 # BPM Turbine Acoustics
 
 Turbine acoustic code using the BPM equations developed by Brooks, Pope, and Marcolini
 
-Developed by Eric Tingey at Brigham Young University, 2015-2017,
-Translated to Julia by Kevin Moore and Taylor McDonald at BYU, 2018
+Developed by Eric Tingey at the FLOW Lab in Brigham Young University, 2015-2017,
+Translated to Julia by Kevin Moore and Taylor McDonald at FLOW Lab, 2018
+Refactored by Tyler Critchfield and Eduardo Alvarez at FLOW Lab, 2020.
 
 This code models the acoustic propagation of a wind turbine based on turbulent boundary layer edge noise, separation stall noise, tip vortex formation noise, laminar boundary layer vortex shedding noise, and trailing edge bluntness vortex shedding noise. Turbulent inflow noise is not assumed in this current code. The semi-empirical equations were developed from the NACA 0012 airfoil data and the blade segments used in the test file are based on the NREL 5-MW wind turbine. Scaling of the segments is based on the blade length specified.
 
@@ -24,13 +15,7 @@ Brooks, T., and Marcolini, M., "Airfoil Tip Vortex Formation Noise," AIAA Journa
 Vargas, L., "Wind Turbine Noise Prediction," Master's Thesis, Technical University of Lisbon, 2008.
 
 
-## Installation instructions
-
-```julia
-Pkg.clone("https://github.com/byuflowlab/BPM.jl.git")
-```
-
-## Running the Julia code
+## Running the code
 
 This julia code can be run from another file using:
 ```julia
@@ -73,7 +58,7 @@ Parameters
 Returns
 ----------
 - `OASPL_HAWT::float`:  A-weighted overall sound pressure level calculated at observer location (dB)
-- `SPLf_HAWT`: sound pressure level at each frequency 
+- `SPLf_HAWT`: sound pressure level at each frequency
 - `SPLfA_HAWT`: A-weighted sound pressure level at each frequency
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -109,10 +94,4 @@ Calculating the sound pressure level for a HAWT
 ----------
 - `SPL_VAWT::float`:  sound pressure level calculated at observer location (dB)
 """
-```
-
-## Run tests
-
-```julia
-Pkg.test("BPM")
 ```

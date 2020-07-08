@@ -1,0 +1,9 @@
+name = "BPM"
+uuid = "f91b385c-3ede-44c9-92c8-2a04f762ef2f"
+author = ["FLOW Lab <aning@byu.edu>"]
+version = "2.0.0"
+
+[deps]
+
+[compat]
+julia = "1"

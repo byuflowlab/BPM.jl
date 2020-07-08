@@ -1,5 +1,5 @@
 using BPM
-using Base.Test
+using Test
 
 @testset "Rosiere Validation" begin
 ##################################################################################
@@ -33,7 +33,7 @@ db_test_ros = BPM.turbinepos(x_test, y_test, obs_test, winddir_test, windvel_tes
 println("Test Cases:")
 println("Rosiere Validation (47 dB): $db_test_ros")
 
-@test isapprox(db_test_ros, 47.0; atol=1e-6)
+@test isapprox(db_test_ros[1], 47.0; atol=1e-6)
 
 end #Rosiere Test
 
@@ -67,7 +67,7 @@ psi = 14.0 # solid angle (deg)
 db_test = BPM.turbinepos(x_test, y_test, obs_test, winddir_test, windvel_test, rpm_test, B_test, h_test, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr)
 
 println("Test SPL (50.8446366094): $db_test")
-@test isapprox(db_test, 50.8446366094; atol=1e-6)
+@test isapprox(db_test[1], 50.8446366094; atol=1e-6)
 
 end #Eric's other example
 
@@ -104,7 +104,7 @@ c1 = c*0.5 # pitch axis location (m)
 alpha = ones(div)*0.0 # angles of attack (deg)
 Hub = 2. # hub height (m)
 H = 6.1 # blade height (m)
-high = linspace(0,H,div+1) # height positions of the blade (m)
+high = range(0,H, length=div+1) # height positions of the blade (m)
 
 AR = 5. # aspect ratio
 
