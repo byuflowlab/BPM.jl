@@ -28,7 +28,7 @@ nu = 1.78e-5 # kinematic viscosity (m^2/s)
 c0 = 343.2 # speed of sound (m/s)
 psi = 14.0 # solid angle (deg)
 # f    (nturb,  nseg,     nobs,       x,            y,          obs,    winddir,windvel,rpm, B, Hub, rad,  c,  c1,alpha,nu,    c0,      psi, AR, noise_corr)
-db_test_ros = BPM.turbinepos(x_test, y_test, obs_test, winddir_test, windvel_test, rpm_test, B_test, h_test, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr)
+db_test_ros, db_test_ros_splf, db_test_ros_splfA = BPM.turbinepos(x_test, y_test, obs_test, winddir_test, windvel_test, rpm_test, B_test, h_test, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr)
 
 println("Test Cases:")
 println("Rosiere Validation (47 dB): $db_test_ros")
@@ -64,7 +64,7 @@ nu = 1.78e-5 # kinematic viscosity (m^2/s)
 c0 = 343.2 # speed of sound (m/s)
 psi = 14.0 # solid angle (deg)
 
-db_test = BPM.turbinepos(x_test, y_test, obs_test, winddir_test, windvel_test, rpm_test, B_test, h_test, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr)
+db_test, db_test_splf, db_test_splfA = BPM.turbinepos(x_test, y_test, obs_test, winddir_test, windvel_test, rpm_test, B_test, h_test, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr)
 
 println("Test SPL (50.8446366094): $db_test")
 @test isapprox(db_test, 50.8446366094; atol=1e-6)
@@ -119,9 +119,9 @@ noise_corr = 1.0 # correction factor for noise
 X=5
 Y=5
 Z=0
-SPL=BPM.turbinepos_VAWT(ntheta, turbx, turby, [X,Y,Z], winddir, B, Hub, high, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr, rot, Vinf, wakex, wakey)
+OASPL = BPM.turbinepos_VAWT(ntheta, turbx, turby, [X,Y,Z], winddir, B, Hub, high, rad, c, c1, alpha, nu, c0, psi, AR, noise_corr, rot, Vinf, wakex, wakey)
 
-println("Test SPL (70.263597969): $SPL")
-@test isapprox(SPL, 70.263597969; atol=1e-6)
+println("Test OASPL (70.263597969): $OASPL")
+@test isapprox(OASPL, 70.263597969; atol=1e-6)
 
 end
