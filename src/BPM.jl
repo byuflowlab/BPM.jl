@@ -1131,7 +1131,7 @@ function turbinepos(x, y, obs, winddir, windvel, rpm,
                     psi, AR, noise_corr)
 
     nturb = length(x)
-    
+
     tSPL = zeros(nturb)
     tSPLA = zeros(nturb)
     SPLf = zeros(nturb, 27) #based on nf from OASPL function
@@ -1163,6 +1163,50 @@ function turbinepos(x, y, obs, winddir, windvel, rpm,
 
     return SPL_obs, SPLA_obs, SPLf, SPLfA
 end #turbinepos
+
+
+function turbinepos_multi(x::Array{<:Real}, y::Array{<:Real}, obs::Array{<:Real},
+                    winddir::Array{<:Real}, windvel::Array{<:Real},
+                    rpm::Array{<:Real}, B::Array{<:Real}, Hub::Array{<:Real},
+                    rad::Array{<:AbstractArray}, c::Array{<:AbstractArray},
+                    c1::Array{<:AbstractArray}, alpha::Array{<:AbstractArray},
+                    nu::Real, c0::Real,
+                    psi::Array{<:Real}, AR::Array{<:Real}, noise_corr::Real)
+
+    nturb = length(x)
+    tSPL = zeros(nturb)
+    tSPLA = zeros(nturb)
+    SPLf = zeros(nturb, 27) #based on nf from OASPL function
+    SPLfA = zeros(nturb, 27)
+    windrad = (winddir .+ 180.0)*pi/180.0
+
+    for i = 1:nturb # for each turbine
+        # Centering the turbine at (0,0) with repect to the observer location
+        ox = obs[1]-x[i]
+        oy = obs[2]-y[i]
+        oz = obs[3]
+
+        # Adjusting the coordinates to turbine reference frame (wind moving in y-direction)
+        rxy = sqrt(ox^2+oy^2)
+        ang = atan(oy,ox)+windrad[i]
+
+        ox = rxy*cos(ang)
+        oy = rxy*sin(ang)
+
+        # Calculating the overall SPL of each of the turbines at the observer location
+        tSPL[i], tSPLA[i], SPLf[i,:], SPLfA[i,:] = OASPL(ox,oy,oz,windvel[i],rpm[i],B[i],Hub[i],rad[i],c[i],c1[i],alpha[i],nu,c0,psi[i],AR[i])
+    end
+
+    # Combining the SPLs from each turbine and correcting the value based on the wind farm
+    SPL_obs = (10.0*log10.(sum(10.0.^(tSPL/10.0)))) * noise_corr
+    SPLA_obs = (10.0*log10(sum(10.0.^(tSPLA/10.0)))) * noise_corr
+    SPLf = (10.0*log10.(sum(10.0.^(SPLf/10.0); dims=1))) * noise_corr
+    SPLfA = (10.0*log10.(sum(10.0.^(SPLfA/10.0); dims=1))) * noise_corr
+
+    return SPL_obs, SPLA_obs, SPLf, SPLfA
+end #turbinepos
+
+
 """
 
 turbinepos_VAWT(p,x,y,obs,winddir,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,AR,noise_corr,rot,Vinf,wakex,wakey)
