@@ -17,6 +17,13 @@ const default_f = [100.0,125.0,160.0,200.0,250.0,315.0,400.0,500.0,
                     20000.0 ,25000.0,31500.0,40000.0]
 
 
+    # A-weighting curve (dBA) for sound perception correction
+const default_AdB = [-19.145,-16.190,-13.244,-10.847,-8.675,-6.644,
+                        -4.774,-3.248,-1.908,-0.795,0.0,0.576,0.993,1.202,
+                        1.271,1.202,0.964,0.556,-0.114,-1.144,-2.488,-4.250,
+                        -6.701,-9.341 ,-12.322,-15.694,-19.402]
+
+
 
 # cubic spline interpolation setup (for Tip Vortex Noise)
 function splineint(n, x, y, xval)
@@ -829,7 +836,7 @@ function TEBVSfunc(f, V, L, c, h, r, theta_e, phi_e, alpha, nu, c0, psi, trip)
 end #TEBVSfunc
 
 # Computing the overall sound pressure level (OASPL) of a turbine defined below (in dB)
-function OASPL(ox, oy, oz, windvel, rpm, B, Hub, rad, c, c1, alpha, nu, c0, psi, AR; f=default_f)
+function OASPL(ox, oy, oz, windvel, rpm, B, Hub, rad, c, c1, alpha, nu, c0, psi, AR; f=default_f, AdB=default_AdB)
     # constants
 
     nf = length(f)
@@ -884,11 +891,6 @@ function OASPL(ox, oy, oz, windvel, rpm, B, Hub, rad, c, c1, alpha, nu, c0, psi,
 
     B_int = 2.0*pi/B # Intervals between blades (from the first blade at 0 deg)
 
-    # A-weighting curve (dBA) for sound perception correction
-    AdB = [-19.145,-16.190,-13.244,-10.847,-8.675,-6.644,
-    -4.774,-3.248,-1.908,-0.795,0.0,0.576,0.993,1.202,
-    1.271,1.202,0.964,0.556,-0.114,-1.144,-2.488,-4.250,
-    -6.701,-9.341 ,-12.322,-15.694,-19.402]
 
     for di=1:bf # for each rotation increment
         for j=1:nf # for each frequency
@@ -1175,7 +1177,7 @@ function turbinepos_multi(x::Array{<:Real}, y::Array{<:Real}, obs::Array{<:Real}
                     rad::Array{<:AbstractArray}, c::Array{<:AbstractArray},
                     c1::Array{<:AbstractArray}, alpha::Array{<:AbstractArray},
                     nu::Real, c0::Real,
-                    psi::Array{<:Real}, AR::Array{<:Real}, noise_corr::Real; f=default_f)
+                    psi::Array{<:Real}, AR::Array{<:Real}, noise_corr::Real; f=default_f, AdB=default_AdB)
 
     nf = length(f)
     nturb = length(x)
@@ -1199,7 +1201,7 @@ function turbinepos_multi(x::Array{<:Real}, y::Array{<:Real}, obs::Array{<:Real}
         oy = rxy*sin(ang)
 
         # Calculating the overall SPL of each of the turbines at the observer location
-        tSPL[i], tSPLA[i], SPLf[i,:], SPLfA[i,:] = OASPL(ox,oy,oz,windvel[i],rpm[i],B[i],Hub[i],rad[i],c[i],c1[i],alpha[i],nu,c0,psi[i],AR[i]; f=f)
+        tSPL[i], tSPLA[i], SPLf[i,:], SPLfA[i,:] = OASPL(ox,oy,oz,windvel[i],rpm[i],B[i],Hub[i],rad[i],c[i],c1[i],alpha[i],nu,c0,psi[i],AR[i]; f=f, AdB=AdB)
     end
 
     # Combining the SPLs from each turbine and correcting the value based on the wind farm
