@@ -818,7 +818,17 @@ function TEBVSfunc(f, V, L, c, h, r, theta_e, phi_e, alpha, nu, c0, psi, trip)
 end #TEBVSfunc
 
 # Computing the overall sound pressure level (OASPL) of a turbine defined below (in dB)
-function OASPL(ox, oy, oz, windvel, rpm, B, Hub, rad, c, c1, alpha, nu, c0, psi, AR)
+function OASPL(ox, oy, oz, windvel, rpm, B, Hub, rad, c, c1, alpha, nu, c0, psi, AR;
+        f=[100.0,125.0,160.0,200.0,250.0,315.0,400.0,500.0,
+            630.0,800.0,1000.0,1250.0,1600.0,2000.0,2500.0,3150.0,
+            4000.0,5000.0,6300.0,8000.0,10000.0,12500.0,16000.0,
+            20000.0,25000.0,31500.0,40000.0],
+        AdB=[-19.145,-16.190,-13.244,-10.847,-8.675,-6.644,
+                -4.774,-3.248,-1.908,-0.795,0.0,0.576,0.993,1.202,
+                1.271,1.202,0.964,0.556,-0.114,-1.144,-2.488,-4.250,
+                -6.701,-9.341,-12.322,-15.694,-19.402],
+        return_unweighted=false
+        )
     # constants
 
     nf = 27
@@ -841,6 +851,7 @@ function OASPL(ox, oy, oz, windvel, rpm, B, Hub, rad, c, c1, alpha, nu, c0, psi,
     BVS = zeros(nf)
     SPLf = zeros(bf, nf)
     SPLfA = zeros(bf, nf)
+    SPLo_d = zeros(bf)
     SPLoa_d = zeros(bf)
 
 
@@ -872,17 +883,17 @@ function OASPL(ox, oy, oz, windvel, rpm, B, Hub, rad, c, c1, alpha, nu, c0, psi,
 
     B_int = 2.0*pi/B # Intervals between blades (from the first blade at 0 deg)
 
-    # One-third octave band frequencies (Hz)
-    f = [100.0,125.0,160.0,200.0,250.0,315.0,400.0,500.0,
-    630.0,800.0,1000.0,1250.0,1600.0,2000.0,2500.0,3150.0,
-    4000.0,5000.0,6300.0,8000.0,10000.0,12500.0,16000.0,
-    20000.0,25000.0,31500.0,40000.0]
-
-    # A-weighting curve (dBA) for sound perception correction
-    AdB = [-19.145,-16.190,-13.244,-10.847,-8.675,-6.644,
-    -4.774,-3.248,-1.908,-0.795,0.0,0.576,0.993,1.202,
-    1.271,1.202,0.964,0.556,-0.114,-1.144,-2.488,-4.250,
-    -6.701,-9.341,-12.322,-15.694,-19.402]
+    # # One-third octave band frequencies (Hz)
+    # f = [100.0,125.0,160.0,200.0,250.0,315.0,400.0,500.0,
+    # 630.0,800.0,1000.0,1250.0,1600.0,2000.0,2500.0,3150.0,
+    # 4000.0,5000.0,6300.0,8000.0,10000.0,12500.0,16000.0,
+    # 20000.0,25000.0,31500.0,40000.0]
+ 
+    # # A-weighting curve (dBA) for sound perception correction
+    # AdB = [-19.145,-16.190,-13.244,-10.847,-8.675,-6.644,
+    # -4.774,-3.248,-1.908,-0.795,0.0,0.576,0.993,1.202,
+    # 1.271,1.202,0.964,0.556,-0.114,-1.144,-2.488,-4.250,
+    # -6.701,-9.341,-12.322,-15.694,-19.402]
 
     for di=1:bf # for each rotation increment
         for j=1:nf # for each frequency
@@ -930,20 +941,29 @@ function OASPL(ox, oy, oz, windvel, rpm, B, Hub, rad, c, c1, alpha, nu, c0, psi,
         SPLfA[di,1:nf] = SPLf[di,1:nf]+AdB[1:nf]
 
         # Adding SPLs for each rotation increment
-        SPLoa_d[di] = 10.0*log10(sum(10.0.^(SPLfA[di,:]/10.0)))
+        SPLo_d[di] = 10.0*log10(sum(10.0.^(SPLf[di,:]/10.0))) #non-weighted OASPL per increment
+        SPLoa_d[di] = 10.0*log10(sum(10.0.^(SPLfA[di,:]/10.0))) # A-weighted OASPL per increment
 
         # Protecting total calcuation from negative SPL values
         if (SPLoa_d[di] < 0.0)
             SPLoa_d[di] = 0.0
         end
+        if (SPLo_d[di] < 0.0)
+            SPLo_d[di] = 0.0
+        end
     end
 
     # Performing root mean square calculation of SPLs at rotation increments for final value
+    SPLo = sqrt(sum(SPLo_d.^2)/bf)
     SPLoa = sqrt(sum(SPLoa_d.^2)/bf)
     SPLf_overall = sqrt.(sum(SPLf.^2, 1)/bf)
     SPLfA_overall = sqrt.(sum(SPLfA.^2, 1)/bf)
-
-    return SPLoa, SPLf_overall, SPLfA_overall
+    
+    if return_unweighted
+        return SPLo, SPLoa, SPLf_overall, SPLfA_overall
+    else
+        return SPLoa, SPLf_overall, SPLfA_overall
+    end
 end #OASPL
 
 #Computing the overall sound pressure level (OASPL) of a turbine defined below (in dB)
@@ -1153,6 +1173,7 @@ function turbinepos(x, y, obs, winddir, windvel, rpm,
 
     return SPL_obs, SPLf, SPLfA
 end #turbinepos
+
 """
 
 turbinepos_VAWT(p,x,y,obs,winddir,B,Hub,high,rad,c,c1,alpha,nu,c0,psi,AR,noise_corr,rot,Vinf,wakex,wakey)
