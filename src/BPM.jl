@@ -1134,14 +1134,15 @@ Calculating the sound pressure level for a HAWT
 """
 function turbinepos(x, y, obs, winddir, windvel, rpm,
                     B, Hub, rad, c, c1, alpha, nu, c0,
-                    psi, AR, noise_corr)
+                    psi, AR, noise_corr; f=default_f, AdB=default_AdB)
 
+    nf = length(f)
     nturb = length(x)
 
     tSPL = zeros(nturb)
     tSPLA = zeros(nturb)
-    SPLf = zeros(nturb, 27) #based on nf from OASPL function
-    SPLfA = zeros(nturb, 27)
+    SPLf = zeros(nturb, nf)
+    SPLfA = zeros(nturb, nf)
     windrad = (winddir+180.0)*pi/180.0
 
     for i = 1:nturb # for each turbine
@@ -1158,14 +1159,14 @@ function turbinepos(x, y, obs, winddir, windvel, rpm,
         oy = rxy*sin(ang)
 
         # Calculating the overall SPL of each of the turbines at the observer location
-        tSPL[i], tSPLA[i], SPLf[i,:], SPLfA[i,:] = OASPL(ox, oy, oz, windvel[i], rpm[i], B, Hub, rad, c, c1, alpha, nu, c0, psi, AR)
+        tSPL[i], tSPLA[i], SPLf[i,:], SPLfA[i,:] = OASPL(ox, oy, oz, windvel[i], rpm[i], B, Hub, rad, c, c1, alpha, nu, c0, psi, AR; f=f, AdB=AdB)
     end
 
     # Combining the SPLs from each turbine and correcting the value based on the wind farm
     SPL_obs = (10.0*log10(sum(10.0.^(tSPL/10.0)))) * noise_corr
     SPLA_obs = (10.0*log10(sum(10.0.^(tSPLA/10.0)))) * noise_corr
-    SPLf = (10.0*log10(sum(10.0.^(SPLf/10.0), 1))) * noise_corr
-    SPLfA = (10.0*log10(sum(10.0.^(SPLfA/10.0), 1))) * noise_corr
+    SPLf .= (10.0*log10(sum(10.0.^(SPLf/10.0); init=1))) * noise_corr
+    SPLfA .= (10.0*log10(sum(10.0.^(SPLfA/10.0); init=1))) * noise_corr
 
     return SPL_obs, SPLA_obs, SPLf, SPLfA
 end #turbinepos
