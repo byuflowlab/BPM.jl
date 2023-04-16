@@ -1,9 +1,10 @@
 name = "BPM"
 uuid = "f91b385c-3ede-44c9-92c8-2a04f762ef2f"
 author = ["FLOW Lab <aning@byu.edu>"]
-version = "2.0.1"
+version = "0.1"
 
 [deps]
+FLOWMath = "6cb5d3fb-0fe8-4cc2-bd89-9fe0b19a99d3"
 
 [compat]
 julia = "1"
