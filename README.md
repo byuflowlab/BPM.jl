@@ -1,9 +1,9 @@
 # BPM.jl
 
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://flow.byu.edu/BPM.jl/dev)
+[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://flow.byu.edu/BPM.jl/dev)
 ![](https://github.com/byuflowlab/BPM.jl/workflows/CI/badge.svg)
 
-**A semi-empirical acoustics code for modeling the acoustic propagation of propellers and turbines** 
+**A semi-empirical code for modeling the acoustics of propellers and turbines** 
 
  - Developed by Eric Tingey at the FLOW Lab in Brigham Young University, 2015-2017,
  - Translated to Julia by Kevin Moore and Taylor McDonald at FLOW Lab, 2018
