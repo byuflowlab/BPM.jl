@@ -68,7 +68,7 @@ function sound_pressure_levels(ox, oy, oz, V, Ω, B, r, c, c1, h, alpha, psi, nu
     nf = length(f)
 
     # define blade angles
-    beta = range(0.0, 2*pi/B, nbeta+1)[1:end-1]
+    beta = range(0.0, 2*pi/B, length=nbeta+1)[1:end-1]
 
     # calculate aspect ratio
     area = FLOWMath.trapz(r, c)
