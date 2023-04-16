@@ -1,13 +1,24 @@
-# BPM Turbine Acoustics
+# BPM.jl
 
-Turbine acoustic code using the BPM equations developed by Brooks, Pope, and Marcolini.
+**A semi-empirical acoustics code for modeling the acoustic propagation of propellers and turbines** 
 
  - Developed by Eric Tingey at the FLOW Lab in Brigham Young University, 2015-2017,
  - Translated to Julia by Kevin Moore and Taylor McDonald at FLOW Lab, 2018
  - Refactored by Tyler Critchfield and Eduardo Alvarez at FLOW Lab, 2020.
  - Completely rewritten (with added verification cases) by Taylor McDonnell in 2023.
 
-This code models the acoustic propagation of a propeller or wind turbine based on turbulent boundary layer edge noise, separation stall noise, tip vortex formation noise, laminar boundary layer vortex shedding noise, and trailing edge bluntness vortex shedding noise. Turbulent inflow noise is not assumed in the current version of the code. These semi-empirical equations were developed using NACA 0012 airfoil sections.
+## Summary:
+
+This code models the acoustic propagation of propellers and wind turbines using the semi-empirical BPM equations developed by Brooks, Pope, and Marcolini.  
+
+These equations capture the following sources of noise:
+ - Laminar boundary layer vortex shedding noise
+ - Turbulent boundary layer edge noise
+ - Separation stall noise
+ - Trailing edge bluntness vortex shedding noise  
+ - Tip vortex formation noise
+
+Note that his code does not currently model turbulent inflow noise. 
 
 ## Installation:
 
