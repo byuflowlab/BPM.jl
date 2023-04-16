@@ -40,12 +40,12 @@ frequency.
  - `c0`: air speed of sound (m/s)
 
 # Keyword Arguments
- - `laminar = false`: Flag to compute laminar boundary layer noise
- - `turbulent = true`: Flag to compute turbulent boundary layer noise
- - `blunt = true`: Flag to compute blunt trailing edge noise
- - `tip = true`: Flag to compute tip noise
- - `trip = true`: Flag to trip boundary layer
- - `round = true`: Indicates whether the tip is rounded
+ - `laminar = false`: Flag(s) to compute laminar boundary layer noise
+ - `turbulent = true`: Flag(s) to compute turbulent boundary layer noise
+ - `blunt = true`: Flag(s) to compute blunt trailing edge noise
+ - `tip = true`: Flag(s) to compute tip noise
+ - `trip = true`: Flag(s) to trip boundary layer
+ - `round = true`: Flag which indicates whether the tip is round or flat
  - `weighted = false`: Indicates whether to apply an A-weighting to the sound pressure levels
  - `nbeta = ceil(Int, 8/B)`: Number of rotation angles to consider.
  - `f = BPM.default_f`: Frequencies to use in the analysis
