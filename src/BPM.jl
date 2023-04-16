@@ -629,7 +629,7 @@ function add_bluntness_pressure!(p, f, r, θ, ϕ, L, c, h, alpha, psi, V, c0, nu
     # compute pressure for each frequency
     for i = 1:length(f)
 
-        St = (f[i]*h)/V
+        St = f[i]*h/V
 
         eta = log10(St/St_peak)
 
@@ -654,7 +654,7 @@ function add_bluntness_pressure!(p, f, r, θ, ϕ, L, c, h, alpha, psi, V, c0, nu
             G5 = tmp
         end
 
-        scale = 10.0*log10((M^5.5*h*Dh*L)/r^2)
+        scale = 10.0*log10(M^5.5*h*Dh*L/r^2)
 
         spl_blunt = G4 + G5 + scale
 
