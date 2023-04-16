@@ -2,18 +2,12 @@
 
 Turbine acoustic code using the BPM equations developed by Brooks, Pope, and Marcolini.
 
-Developed by Eric Tingey at the FLOW Lab in Brigham Young University, 2015-2017,
-Translated to Julia by Kevin Moore and Taylor McDonald at FLOW Lab, 2018
-Refactored by Tyler Critchfield and Eduardo Alvarez at FLOW Lab, 2020.
-Completely rewritten (with added verification cases) by Taylor McDonnell in 2023.
+ - Developed by Eric Tingey at the FLOW Lab in Brigham Young University, 2015-2017,
+ - Translated to Julia by Kevin Moore and Taylor McDonald at FLOW Lab, 2018
+ - Refactored by Tyler Critchfield and Eduardo Alvarez at FLOW Lab, 2020.
+ - Completely rewritten (with added verification cases) by Taylor McDonnell in 2023.
 
 This code models the acoustic propagation of a propeller or wind turbine based on turbulent boundary layer edge noise, separation stall noise, tip vortex formation noise, laminar boundary layer vortex shedding noise, and trailing edge bluntness vortex shedding noise. Turbulent inflow noise is not assumed in the current version of the code. These semi-empirical equations were developed using NACA 0012 airfoil sections.
-
-Brooks, T., Pope, D., and Marcolini, M., “Aipower Self-Noise and Prediction,” NASA, 1989.
-
-Brooks, T., and Marcolini, M., "Airfoil Tip Vortex Formation Noise," AIAA Journal, 1986.
-
-Vargas, L., "Wind Turbine Noise Prediction," Master's Thesis, Technical University of Lisbon, 2008.
 
 ## Installation:
 
@@ -50,15 +44,23 @@ frequency.
  - `c0`: air speed of sound (m/s)
 
 # Keyword Arguments
- - `laminar = false`: Flag to compute laminar boundary layer noise
- - `turbulent = true`: Flag to compute turbulent boundary layer noise
- - `blunt = true`: Flag to compute blunt trailing edge noise
- - `tip = true`: Flag to compute tip noise
- - `trip = true`: Flag to trip boundary layer
- - `round = true`: Indicates whether the tip is rounded
+ - `laminar = false`: Flag(s) to compute laminar boundary layer noise
+ - `turbulent = true`: Flag(s) to compute turbulent boundary layer noise
+ - `blunt = true`: Flag(s) to compute blunt trailing edge noise
+ - `tip = true`: Flag(s) to compute tip noise
+ - `trip = true`: Flag(s) to trip boundary layer
+ - `round = true`: Flag which indicates whether the tip is round or flat
  - `weighted = false`: Indicates whether to apply an A-weighting to the sound pressure levels
  - `nbeta = ceil(Int, 8/B)`: Number of rotation angles to consider.
  - `f = BPM.default_f`: Frequencies to use in the analysis
  - `Adb = BPM.default_AdB`: A-weighting for each frequency
- """
+"""
 ```
+
+## References
+
+Brooks, T., Pope, D., and Marcolini, M., “Aipower Self-Noise and Prediction,” NASA, 1989.
+
+Brooks, T., and Marcolini, M., "Airfoil Tip Vortex Formation Noise," AIAA Journal, 1986.
+
+Vargas, L., "Wind Turbine Noise Prediction," Master's Thesis, Technical University of Lisbon, 2008.
