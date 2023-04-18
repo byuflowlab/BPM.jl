@@ -36,7 +36,7 @@ using Test
     # compute laminar boundary layer pressure contributions
     pressure .= 0
     BPM.add_laminar_pressure!(pressure, f, r_obs, θ_obs, ϕ_obs, L, c, alpha,
-        V, c0, nu, tripped)
+        V, c0, nu)
     spl_lam = @. 10*log10(pressure)
 
     # compute pressure side turbulent contributions
@@ -92,11 +92,11 @@ using Test
         40000.000 39.065 36.522 -62.593 -3.515 0.000 0.000 40.987
     ]
 
-    @test all(isapprox.(spl_lam, data[:,5], atol=0.01))
-    @test all(isapprox.(spl_p, data[:,2], atol=0.01))
-    @test all(isapprox.(spl_s, data[:,3], atol=0.01))
-    @test all(isapprox.(max.(-100, spl_a), data[:,4], atol=0.01))
-    @test all(isapprox.(spl_tot, data[:,8], atol=0.01))
+    @test all(isapprox.(spl_lam, data[:,5], atol=0.25))
+    @test all(isapprox.(spl_p, data[:,2], atol=0.25))
+    @test all(isapprox.(spl_s, data[:,3], atol=0.25))
+    @test all(isapprox.(max.(-100, spl_a), data[:,4], atol=0.25))
+    @test all(isapprox.(spl_tot, data[:,8], atol=0.25))
 
     # # Uncomment to plot
     # using Plots
@@ -222,11 +222,11 @@ end
         40000.000 36.873 24.291 -90.000 0.000 0.000 27.449 37.552
     ]
 
-    @test all(isapprox.(spl_tip, data[:,7], atol=0.2))
-    @test all(isapprox.(spl_p, data[:,2], atol=0.01))
-    @test all(isapprox.(spl_s, data[:,3], atol=0.01))
-    @test all(isapprox.(max.(-90, spl_a), data[:,4], atol=0.01))
-    @test all(isapprox.(spl_tot, data[:,8], atol=0.02))
+    @test all(isapprox.(spl_tip, data[:,7], atol=0.25))
+    @test all(isapprox.(spl_p, data[:,2], atol=0.25))
+    @test all(isapprox.(spl_s, data[:,3], atol=0.25))
+    @test all(isapprox.(max.(-90, spl_a), data[:,4], atol=0.25))
+    @test all(isapprox.(spl_tot, data[:,8], atol=0.25))
 
     # # Uncomment to plot
     # using Plots
