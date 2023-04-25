@@ -75,6 +75,14 @@ function sound_pressure_levels(ox, oy, oz, V, Ω, B, r, c, c1, h, alpha, psi, nu
     nr = length(r)
     nf = length(f)
 
+    # use absolute value of angle of attack (since the BPM equations were constructed
+    # using a symmetric airfoil)
+    if smooth
+        alpha .= abs_smooth.(alpha, 0.001)
+    else
+        alpha .= abs.(alpha)
+    end
+
     # define blade angles
     beta = range(0.0, 2*pi/B, length=nbeta+1)[1:end-1]
 
@@ -89,14 +97,14 @@ function sound_pressure_levels(ox, oy, oz, V, Ω, B, r, c, c1, h, alpha, psi, nu
     # initialize sound pressure levels for each frequency
     spl = zeros(TF, nf)
 
-    # initialize pressure for each frequency
-    p = zeros(TF, nf)
+    # initialize p^2/pref^2 accumulator for each frequency
+    p2 = zeros(TF, nf)
 
     # loop through each rotation increment
     for ibeta = 1 : nbeta
 
         # reset pressure accumulation array
-        p .= 0
+        p2 .= 0
 
         # loop through each blade
         for iB = 1 : B
@@ -108,7 +116,7 @@ function sound_pressure_levels(ox, oy, oz, V, Ω, B, r, c, c1, h, alpha, psi, nu
                 # find observer location relative to the tip
                 r_obs, θ_obs, ϕ_obs = observer_location(ox, oy, oz, c[end], c1[end], r[end], cbeta)
                 # add tip vortex pressure contributions
-                add_tip_pressure!(p, f, r_obs, θ_obs, ϕ_obs, c[end], alpha[end], Vt, c0,
+                add_tip_pressure!(p2, f, r_obs, θ_obs, ϕ_obs, c[end], alpha[end], Vt, c0,
                     aspect_ratio, round, smooth)
             end
 
@@ -133,31 +141,31 @@ function sound_pressure_levels(ox, oy, oz, V, Ω, B, r, c, c1, h, alpha, psi, nu
 
                 if typeof(laminar) <: AbstractVector ? laminar[k] : laminar
                     # add laminar boundary layer pressure contributions
-                    add_laminar_pressure!(p, f, r_obs, θ_obs, ϕ_obs, Lm, cm, am, Vm, c0, nu, smooth)
+                    add_laminar_pressure!(p2, f, r_obs, θ_obs, ϕ_obs, Lm, cm, am, Vm, c0, nu, smooth)
                 end
 
                 if typeof(turbulent) <: AbstractVector ? turbulent[k] : turbulent
                     # add turbulent boundary layer pressure contributions
-                    add_turbulent_pressure!(p, f, r_obs, θ_obs, ϕ_obs, Lm, cm, am, Vm, c0, nu, tripped, smooth)
+                    add_turbulent_pressure!(p2, f, r_obs, θ_obs, ϕ_obs, Lm, cm, am, Vm, c0, nu, tripped, smooth)
                 end
 
                 if typeof(blunt) <: AbstractVector ? blunt[k] : blunt
                     # add blunt trailing edge pressure contributions
-                    add_bluntness_pressure!(p, f, r_obs, θ_obs, ϕ_obs, Lm, cm, hm, am, pm, Vm, c0, nu, tripped, smooth)
+                    add_bluntness_pressure!(p2, f, r_obs, θ_obs, ϕ_obs, Lm, cm, hm, am, pm, Vm, c0, nu, tripped, smooth)
                 end
 
             end
         end
 
-        # accumulate squared pressures at each frequency
-        @. spl += p^2
+        # accumulate p^2/pref^2 at each frequency
+        @. spl += p2
 
     end
 
-    # compute root mean squared pressure
-    @. spl = sqrt(spl/nbeta)
+    # divide accumulated p^2/pref^2 by the number of blade locations
+    @. spl = spl/nbeta
 
-    # convert to decibels
+    # calculate sound pressure level 20.0*log10(sqrt(p^2/pref^2)) = 10.0*log10(p^2/pref^2)
     @. spl = 10.0*log10(spl)
 
     # apply A-weighting
@@ -166,11 +174,11 @@ function sound_pressure_levels(ox, oy, oz, V, Ω, B, r, c, c1, h, alpha, psi, nu
     end
 
     # compute overall sound pressure level
-    psum2 = zero(TF)
+    p2sum = zero(TF)
     for i = 1:length(spl)
-        psum2 += (10.0 ^ (2*spl[i]/10.0))
+        p2sum += (10.0 ^ (spl[i]/10.0))
     end
-    oaspl = 10*log10(sqrt(psum2))
+    oaspl = 10*log10(p2sum)
 
     # return noise in decibels at each frequency
     return oaspl, spl

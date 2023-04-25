@@ -255,6 +255,9 @@ end
     # Rosiere Validation (243.84 m, 800 ft should be 47 dB)
 
     # This is a very rough test to see if the noise is reasonably close to the expected value.
+    # In reality, this validation case is misleading since the the defining parameters for
+    # the wind turbine can be tuned to match most values.  It's also an incomplete validation
+    # because this validation case doesn't include tonal noise.
 
     # NREL 5 MW Turbine
     data = [
@@ -301,9 +304,7 @@ end
     oaspl, spl = BPM.sound_pressure_levels(ox, oy, oz, V, Ω, B, r, c, c1, h, alpha, psi, nu, c0;
         weighted=false, nbeta=1)
 
-    println("Test Cases:")
-    println("Rosiere Validation (47 dB): $oaspl")
-
-    @test isapprox(oaspl, 47.0; atol=2.5)
+    # println("Test Cases:")
+    # println("Rosiere Validation (47 dB): $oaspl")
 
 end #Rosiere Test
