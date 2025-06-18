@@ -184,8 +184,13 @@ function sound_pressure_levels(ox, oy, oz, V, Ω, B, r, c, c1, h, alpha, psi, nu
     return oaspl, spl
 end
 
-# computed directivity angles and distance for a HAWT
-# based on work by Luis Vargas (Wind Turbine Noise Prediction)
+"""
+    observer_location(xo, yo, zo, c, c1, d, beta)
+    
+Computes directivity angles and distance for a HAWT.
+
+Based on work by Luis Vargas (Wind Turbine Noise Prediction).
+"""
 function observer_location(xo, yo, zo, c, c1, d, beta)
 
     # Calculate the trailing edge position relative to the hub
@@ -230,7 +235,11 @@ function observer_location(xo, yo, zo, c, c1, d, beta)
     return r, θ, ϕ
 end
 
-# Laminar Boundary Layer Vortex Shedding Noise (pg. 66)
+"""
+    add_laminar_pressure!(p, f, r, θ, ϕ, L, c, alpha, V, c0, nu, smooth=true)
+
+Laminar Boundary Layer Vortex Shedding Noise (pg. 66)
+"""
 function add_laminar_pressure!(p, f, r, θ, ϕ, L, c, alpha, V, c0, nu, smooth=true)
 
     # Mach Number
@@ -276,7 +285,12 @@ function add_laminar_pressure!(p, f, r, θ, ϕ, L, c, alpha, V, c0, nu, smooth=t
     return p
 end
 
-# Turbulent Boundary Layer Trailing Edge Noise and Separated Flow Noise (pg. 59)
+
+"""
+    add_turbulent_pressure!(p, f, r, θ, ϕ, L, c, alpha, V, c0, nu, trip, smooth=true; pressure=true, suction=true, separation=true)
+
+Turbulent Boundary Layer Trailing Edge Noise and Separated Flow Noise (pg. 59)
+"""
 function add_turbulent_pressure!(p, f, r, θ, ϕ, L, c, alpha, V, c0, nu, trip, smooth=true;
     pressure=true, suction=true, separation=true)
 
@@ -413,7 +427,12 @@ function add_turbulent_pressure!(p, f, r, θ, ϕ, L, c, alpha, V, c0, nu, trip, 
     return p
 end
 
-# Trailing Edge Bluntness Vortex Shedding Noise (pg. 78)
+
+"""
+    add_bluntness_pressure!(p, f, r, θ, ϕ, L, c, h, alpha, psi, V, c0, nu, trip, smooth=true)
+
+Trailing Edge Bluntness Vortex Shedding Noise (pg. 78)
+"""
 function add_bluntness_pressure!(p, f, r, θ, ϕ, L, c, h, alpha, psi, V, c0, nu, trip, smooth=true)
 
     # Mach number
@@ -479,7 +498,11 @@ function add_bluntness_pressure!(p, f, r, θ, ϕ, L, c, h, alpha, psi, V, c0, nu
     return p
 end
 
-# Tip Vortex Formation Noise
+"""
+    add_tip_pressure!(p, f, r, θ, ϕ, c, alpha, V, c0, aspect_ratio, round, smooth=true)
+
+Tip Vortex Formation Noise
+"""
 function add_tip_pressure!(p, f, r, θ, ϕ, c, alpha, V, c0, aspect_ratio, round, smooth=true)
 
     if smooth
@@ -568,7 +591,11 @@ function add_tip_pressure!(p, f, r, θ, ϕ, c, alpha, V, c0, aspect_ratio, round
     return p
 end
 
-# boundary layer thickness
+"""
+    boundary_thickness(Re, c, alpha)
+
+Boundary layer thickness
+"""
 function boundary_thickness(Re, c, alpha)
 
     d0 = c*10.0^(1.6569 - 0.9045*log10(Re) + 0.0596*log10(Re)^2)
@@ -578,7 +605,11 @@ function boundary_thickness(Re, c, alpha)
     return dp
 end
 
-# boundary layer displacement thickness
+"""
+    displacement_thickness(Re, c, alpha, trip, smooth=true)
+
+Boundary layer displacement thickness
+"""
 function displacement_thickness(Re, c, alpha, trip, smooth=true)
 
     if trip # heavily tripped boundary layer
@@ -683,6 +714,9 @@ function displacement_thickness(Re, c, alpha, trip, smooth=true)
     return dp, ds
 end
 
+"""
+    Re0_func(alpha, smooth=true)
+"""
 function Re0_func(alpha, smooth=true)
 
     if smooth
@@ -707,6 +741,9 @@ function Re0_func(alpha, smooth=true)
     return Re0
 end
 
+"""
+    K1_func(Re, smooth=true)
+"""
 function K1_func(Re, smooth=true)
 
     if smooth
@@ -739,6 +776,9 @@ function K1_func(Re, smooth=true)
     return K1
 end
 
+"""
+    ΔK1_func(Rp, alpha, smooth=true)
+"""
 function ΔK1_func(Rp, alpha, smooth=true)
 
     if smooth
@@ -761,6 +801,9 @@ function ΔK1_func(Rp, alpha, smooth=true)
     return ΔK1
 end
 
+"""
+    K2_func(alpha, M, K1, smooth=true)
+"""
 function K2_func(alpha, M, K1, smooth=true)
 
     gamma =  27.094*M +  3.31
@@ -807,6 +850,9 @@ function K2_func(alpha, M, K1, smooth=true)
     return K2
 end
 
+"""
+    St1p_func(Re, smooth=true)
+"""
 function St1p_func(Re, smooth=true)
 
     if smooth
@@ -841,6 +887,9 @@ function St1p_func(Re, smooth=true)
     return St1p
 end
 
+"""
+    St2_func(alpha, St1, smooth=true)
+"""
 function St2_func(alpha, St1, smooth=true)
 
     if smooth
@@ -873,6 +922,9 @@ function St2_func(alpha, St1, smooth=true)
     return St2
 end
 
+"""
+    Stpeak_func(hdav, psi, smooth=true)
+"""
 function Stpeak_func(hdav, psi, smooth=true)
 
     if smooth
@@ -897,6 +949,9 @@ function Stpeak_func(hdav, psi, smooth=true)
     return Stpeak
 end
 
+"""
+    G1_func(e, smooth=true)
+"""
 function G1_func(e, smooth=true)
 
     if smooth
@@ -953,6 +1008,9 @@ function G1_func(e, smooth=true)
     return G1
 end
 
+"""
+    G2_func(d, smooth=true)
+"""
 function G2_func(d, smooth=true)
 
     if smooth
@@ -997,6 +1055,9 @@ function G2_func(d, smooth=true)
     return G2
 end
 
+"""
+    G4_func(hdav, psi, smooth=true)
+"""
 function G4_func(hdav, psi, smooth=true)
 
     if smooth
@@ -1019,6 +1080,9 @@ function G4_func(hdav, psi, smooth=true)
     return G4
 end
 
+"""
+    G1_func(e, smooth=true)
+"""
 function G5func(hdav, eta, smooth=true)
 
     if smooth
@@ -1451,6 +1515,5 @@ function Dlfunc(M, θ, ϕ)
 
     return Dl
 end
-
 
 end # module
