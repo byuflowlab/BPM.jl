@@ -1,7 +1,7 @@
 # BroadbandBPM.jl
 
-[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://flow.byu.edu/BPM.jl/dev)
-![](https://github.com/byuflowlab/BPM.jl/workflows/CI/badge.svg)
+[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://flow.byu.edu/BroadbandBPM.jl/dev)
+![](https://github.com/byuflowlab/BroadbandBPM.jl/workflows/CI/badge.svg)
 
 **A semi-empirical code for modeling the acoustics of propellers and turbines** 
 
@@ -27,7 +27,7 @@ Note that his code does not currently model turbulent inflow noise.
 ## Installation:
 
 ```julia
-] add https://github.com/byuflowlab/BPM.jl
+] add BroadbandBPM
 ```
 
 ## Usage:
@@ -67,8 +67,8 @@ frequency.
  - `round = true`: Flag which indicates whether the tip is round or flat
  - `weighted = false`: Indicates whether to apply an A-weighting to the sound pressure levels
  - `nbeta = ceil(Int, 8/B)`: Number of rotation angles to consider.
- - `f = BPM.default_f`: Frequencies to use in the analysis
- - `Adb = BPM.default_AdB`: A-weighting for each frequency
+ - `f = BroadbandBPM.default_f`: Frequencies to use in the analysis
+ - `Adb = BroadbandBPM.default_AdB`: A-weighting for each frequency
 """
 ```
 
