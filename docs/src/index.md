@@ -1,7 +1,7 @@
-# BPM.jl
+# BroadbandBPM.jl
 
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://flow.byu.edu/BPM.jl/dev)
-![](https://github.com/byuflowlab/BPM.jl/workflows/CI/badge.svg)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://flow.byu.edu/BroadbandBPM.jl/dev)
+![](https://github.com/byuflowlab/BroadbandBPM.jl/workflows/CI/badge.svg)
 
 **A semi-empirical acoustics code for modeling the acoustic propagation of propellers and turbines**
 
@@ -9,6 +9,7 @@
  - Translated to Julia by Kevin Moore and Taylor McDonald at FLOW Lab, 2018
  - Refactored by Tyler Critchfield and Eduardo Alvarez at FLOW Lab, 2020.
  - Completely rewritten (with added verification cases) by Taylor McDonnell in 2023.
+ - Renamed (from `BPM.jl`) in 2026 to register with the Julia general registry.
 
 ## Summary:
 
@@ -26,7 +27,7 @@ Note that his code does not currently model turbulent inflow noise.
 ## Installation:
 
 ```julia
-] add https://github.com/byuflowlab/BPM.jl
+] add BroadbandBPM
 ```
 
 ## Usage:

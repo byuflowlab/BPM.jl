@@ -1,4 +1,4 @@
-using BPM
+using BroadbandBPM
 using Test
 
 # NOTE: The blunt trailing edge calculations have not yet been verified.  It would also
@@ -35,25 +35,25 @@ using Test
 
     # compute laminar boundary layer pressure contributions
     pressure .= 0
-    BPM.add_laminar_pressure!(pressure, f, r_obs, θ_obs, ϕ_obs, L, c, alpha,
+    BroadbandBPM.add_laminar_pressure!(pressure, f, r_obs, θ_obs, ϕ_obs, L, c, alpha,
         V, c0, nu)
     spl_lam = @. 10*log10(pressure)
 
     # compute pressure side turbulent contributions
     pressure .= 0
-    BPM.add_turbulent_pressure!(pressure, f, r_obs, θ_obs, ϕ_obs, L, c, alpha,
+    BroadbandBPM.add_turbulent_pressure!(pressure, f, r_obs, θ_obs, ϕ_obs, L, c, alpha,
         V, c0, nu, tripped; pressure=true, suction=false, separation=false)
     spl_p = @. 10*log10(pressure)
 
     # compute suction side turbulent contributions
     pressure .= 0
-    BPM.add_turbulent_pressure!(pressure, f, r_obs, θ_obs, ϕ_obs, L, c, alpha,
+    BroadbandBPM.add_turbulent_pressure!(pressure, f, r_obs, θ_obs, ϕ_obs, L, c, alpha,
         V, c0, nu, tripped; pressure=false, suction=true, separation=false)
     spl_s = @. 10*log10(pressure)
 
     # compute separation turbulent contributions
     pressure .= 0
-    BPM.add_turbulent_pressure!(pressure, f, r_obs, θ_obs, ϕ_obs, L, c, alpha,
+    BroadbandBPM.add_turbulent_pressure!(pressure, f, r_obs, θ_obs, ϕ_obs, L, c, alpha,
         V, c0, nu, tripped; pressure=false, suction=false, separation=true)
     spl_a = @. 10*log10(pressure)
 
@@ -160,26 +160,26 @@ end
 
     # compute tip vortex pressure contributions
     pressure .= 0
-    BPM.add_tip_pressure!(pressure, f, r_obs, θ_obs, ϕ_obs, c, alpha_tip, V, c0, aspect_ratio, round)
+    BroadbandBPM.add_tip_pressure!(pressure, f, r_obs, θ_obs, ϕ_obs, c, alpha_tip, V, c0, aspect_ratio, round)
     spl_tip = @. 10*log10(pressure)
 
     # compute pressure side turbulent contributions
     pressure .= 0
-    BPM.add_turbulent_pressure!(pressure, f, r_obs, θ_obs, ϕ_obs, L, c, alpha,
+    BroadbandBPM.add_turbulent_pressure!(pressure, f, r_obs, θ_obs, ϕ_obs, L, c, alpha,
         V, c0, nu, tripped; pressure=true, suction=false, separation=false)
     pressure *= N
     spl_p = @. 10*log10(pressure)
 
     # compute suction side turbulent contributions
     pressure .= 0
-    BPM.add_turbulent_pressure!(pressure, f, r_obs, θ_obs, ϕ_obs, L, c, alpha,
+    BroadbandBPM.add_turbulent_pressure!(pressure, f, r_obs, θ_obs, ϕ_obs, L, c, alpha,
         V, c0, nu, tripped; pressure=false, suction=true, separation=false)
     pressure *= N
     spl_s = @. 10*log10(pressure)
 
     # compute separation turbulent contributions
     pressure .= 0
-    BPM.add_turbulent_pressure!(pressure, f, r_obs, θ_obs, ϕ_obs, L, c, alpha,
+    BroadbandBPM.add_turbulent_pressure!(pressure, f, r_obs, θ_obs, ϕ_obs, L, c, alpha,
         V, c0, nu, tripped; pressure=false, suction=false, separation=true)
     pressure *= N
     spl_a = @. 10*log10(pressure)
@@ -301,7 +301,7 @@ end
     c0 = 343.2 # speed of sound (m/s)
 
     # Compute sound pressure levels
-    oaspl, spl = BPM.sound_pressure_levels(ox, oy, oz, V, Ω, B, r, c, c1, h, alpha, psi, nu, c0;
+    oaspl, spl = BroadbandBPM.sound_pressure_levels(ox, oy, oz, V, Ω, B, r, c, c1, h, alpha, psi, nu, c0;
         weighted=false, nbeta=1)
 
     # println("Test Cases:")

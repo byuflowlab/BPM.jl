@@ -1,4 +1,4 @@
-module BPM
+module BroadbandBPM
 
 using FLOWMath
 
@@ -54,8 +54,8 @@ frequency.
  - `round = true`: Flag which indicates whether the tip is round or flat
  - `weighted = false`: Indicates whether to apply an A-weighting to the sound pressure levels
  - `nbeta = ceil(Int, 8/B)`: Number of rotation angles to consider.
- - `f = BPM.default_f`: Frequencies to use in the analysis
- - `Adb = BPM.default_AdB`: A-weighting for each frequency
+ - `f = BroadbandBPM.default_f`: Frequencies to use in the analysis
+ - `Adb = BroadbandBPM.default_AdB`: A-weighting for each frequency
  - `smooth = true`: Flag indicating whether smoothly blend each piecewise linear function
         so that the outputs are smooth and continuous.
 """

@@ -1,4 +1,4 @@
-The BPM.jl package is licensed under the MIT "Expat" License:
+The BroadbandBPM.jl package is licensed under the MIT "Expat" License:
 
 Copyright (c) 2015 Taylor McDonnell and Eric Tingey, Brigham Young University
 >

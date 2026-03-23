@@ -45,10 +45,10 @@ pyplot()
     c0 = 343.2 # speed of sound (m/s)
 
     # define function which modifies all the interesting variables
-    Vfunc = (x) -> BPM.sound_pressure_levels(ox, oy, oz, x*V, Ω, B, r, c, c1, h, alpha, psi, nu, c0;
+    Vfunc = (x) -> BroadbandBPM.sound_pressure_levels(ox, oy, oz, x*V, Ω, B, r, c, c1, h, alpha, psi, nu, c0;
         turbulent=true, blunt=true, tip=false, weighted=false, smooth=false)[1]
 
-    smooth_Vfunc = (x) -> BPM.sound_pressure_levels(ox, oy, oz, x*V, Ω, B, r, c, c1, h, alpha, psi, nu, c0;
+    smooth_Vfunc = (x) -> BroadbandBPM.sound_pressure_levels(ox, oy, oz, x*V, Ω, B, r, c, c1, h, alpha, psi, nu, c0;
         turbulent=true, blunt=true, tip=false, weighted=false, smooth=true)[1]
 
     x = range(2.0, 4.0, length=1000)
@@ -57,10 +57,10 @@ pyplot()
         ylabel="OASPL")
     plot!(x*V, smooth_Vfunc.(x), label="")
 
-    afunc = (x) -> BPM.sound_pressure_levels(ox, oy, oz, V, Ω, B, r, c, c1, h, x.*alpha, psi, nu, c0;
+    afunc = (x) -> BroadbandBPM.sound_pressure_levels(ox, oy, oz, V, Ω, B, r, c, c1, h, x.*alpha, psi, nu, c0;
         turbulent=true, blunt=true, tip=false, weighted=false, smooth=false)[1]
 
-    smooth_afunc = (x) -> BPM.sound_pressure_levels(ox, oy, oz, V, Ω, B, r, c, c1, h, x.*alpha, psi, nu, c0;
+    smooth_afunc = (x) -> BroadbandBPM.sound_pressure_levels(ox, oy, oz, V, Ω, B, r, c, c1, h, x.*alpha, psi, nu, c0;
         turbulent=true, blunt=true, tip=false, weighted=false, smooth=true)[1]
 
     x = range(0.0, 2.0, length=1000)

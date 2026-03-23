@@ -1,4 +1,4 @@
-# BPM.jl
+# BroadbandBPM.jl
 
 [![](https://img.shields.io/badge/docs-dev-blue.svg)](https://flow.byu.edu/BPM.jl/dev)
 ![](https://github.com/byuflowlab/BPM.jl/workflows/CI/badge.svg)
@@ -9,6 +9,7 @@
  - Translated to Julia by Kevin Moore and Taylor McDonald at FLOW Lab, 2018
  - Refactored by Tyler Critchfield and Eduardo Alvarez at FLOW Lab, 2020.
  - Completely rewritten (with added verification cases) by Taylor McDonnell in 2023.
+ - Renamed (from `BPM.jl`) in 2026 to register with the Julia general registry.
 
 ## Summary:
 

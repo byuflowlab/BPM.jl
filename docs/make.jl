@@ -1,14 +1,14 @@
-using Documenter, BPM
+using Documenter, BroadbandBPM
 
 makedocs(
-    modules = [BPM],
+    modules = [BroadbandBPM],
     pages = [
         "Home" => "index.md",
     ],
-    sitename="BPM.jl",
+    sitename="BroadbandBPM.jl",
     authors="Taylor McDonnell <taylormcd@byu.edu>",
 )
 
 deploydocs(
-    repo = "github.com/byuflowlab/BPM.jl.git"
+    repo = "github.com/byuflowlab/BroadbandBPM.jl.git"
 )
